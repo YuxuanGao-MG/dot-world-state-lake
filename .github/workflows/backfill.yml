@@ -10,7 +10,7 @@ on:
       collector:
         description: collector to backfill
         type: choice
-        options: [market_yahoo, macro_alfred, edgar]
+        options: [market_yahoo, macro_alfred, edgar, crypto_yahoo, news_gdelt, wiki_pageviews]
         required: true
       force:
         description: overwrite shards that already exist on HF

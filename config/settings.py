@@ -53,6 +53,39 @@ MACRO_SERIES = [
     "VIXCLS", "BAMLH0A0HYM2", "BAMLC0A0CM",
 ]
 
+# --- Crypto (CoinGecko, keyless, US-accessible; full daily history per call) --
+CRYPTO_IDS = {
+    "bitcoin": "BTC", "ethereum": "ETH", "solana": "SOL", "binancecoin": "BNB",
+    "ripple": "XRP", "cardano": "ADA", "dogecoin": "DOGE", "avalanche-2": "AVAX",
+    "chainlink": "LINK", "polkadot": "DOT", "tron": "TRX", "litecoin": "LTC",
+}
+
+# --- News themes (GDELT DOC 2.0 timeline API, keyless): daily volume + tone ----
+GDELT_THEMES = {
+    "recession": "recession",
+    "inflation": "inflation",
+    "federal_reserve": "\"federal reserve\"",
+    "interest_rates": "\"interest rates\"",
+    "stock_market": "\"stock market\"",
+    "layoffs": "layoffs",
+    "banking_crisis": "\"banking crisis\"",
+    "oil_prices": "\"oil prices\"",
+    "supply_chain": "\"supply chain\"",
+    "unemployment": "unemployment",
+    "ai_technology": "\"artificial intelligence\"",
+    "geopolitics_war": "war",
+    "tariffs_trade": "tariffs",
+    "housing_market": "\"housing market\"",
+}
+
+# --- Attention (Wikipedia daily pageviews, keyless): interest per topic --------
+WIKI_ARTICLES = [
+    "Inflation", "Recession", "Federal_Reserve", "S&P_500", "Nasdaq",
+    "Bitcoin", "Ethereum", "Stock_market_crash", "Yield_curve",
+    "Quantitative_easing", "Unemployment", "Consumer_price_index",
+    "Interest_rate", "Bear_market", "Bull_market", "Cryptocurrency",
+]
+
 # --- HTTP politeness ---------------------------------------------------------
 # SEC requires a descriptive UA with contact; be a good citizen everywhere.
 USER_AGENT = os.environ.get(

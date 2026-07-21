@@ -33,9 +33,12 @@ worldstate/
   hfstore.py       # idempotent Parquet shard upload to HF (deterministic paths)
   query.py         # as_of(t) engine over the HF corpus via DuckDB
   collectors/
-    market_yahoo.py   # US daily OHLCV via yfinance (keyless)
+    market_yahoo.py   # US equity/ETF daily OHLCV via yfinance (keyless)
+    crypto_yahoo.py   # crypto daily OHLCV via yfinance (keyless)
     macro_alfred.py   # FRED/ALFRED macro WITH vintage history (needs FRED_API_KEY)
     edgar.py          # SEC filing event stream (keyless)
+    news_gdelt.py     # daily news volume + tone per theme, GDELT DOC 2.0 (keyless)
+    wiki_pageviews.py # daily Wikipedia pageviews per topic — attention (keyless)
 scripts/
   run_collector.py  # CLI used by the workflows: list | run --chunk | run-all
   build_universe.py # expand US universe from SEC company_tickers.json

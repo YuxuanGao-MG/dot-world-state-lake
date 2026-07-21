@@ -16,11 +16,17 @@ from worldstate import hfstore
 from worldstate.collectors.market_yahoo import YahooDaily
 from worldstate.collectors.macro_alfred import AlfredVintages
 from worldstate.collectors.edgar import EdgarIndex
+from worldstate.collectors.crypto_yahoo import CryptoYahoo
+from worldstate.collectors.news_gdelt import GdeltThemes
+from worldstate.collectors.wiki_pageviews import WikiPageviews
 
 REGISTRY = {
     "market_yahoo": YahooDaily,
     "macro_alfred": AlfredVintages,
     "edgar": EdgarIndex,
+    "crypto_yahoo": CryptoYahoo,
+    "news_gdelt": GdeltThemes,
+    "wiki_pageviews": WikiPageviews,
 }
 
 
