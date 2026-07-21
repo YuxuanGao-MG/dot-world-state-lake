@@ -33,7 +33,7 @@ worldstate/
   hfstore.py       # idempotent Parquet shard upload to HF (deterministic paths)
   query.py         # as_of(t) engine over the HF corpus via DuckDB
   collectors/
-    market_stooq.py   # US daily OHLCV (keyless)
+    market_yahoo.py   # US daily OHLCV via yfinance (keyless)
     macro_alfred.py   # FRED/ALFRED macro WITH vintage history (needs FRED_API_KEY)
     edgar.py          # SEC filing event stream (keyless)
 scripts/
@@ -58,7 +58,7 @@ In this repo's **Settings → Secrets and variables → Actions**:
 ## Run
 
 - **Backfill**: Actions → *backfill* → pick a collector (`macro_alfred`, `edgar`,
-  `market_stooq`) → Run. Re-running resumes (existing shards skipped).
+  `market_yahoo`) → Run. Re-running resumes (existing shards skipped).
 - **Daily**: the *incremental* workflow runs on cron automatically.
 
 ## Scope (first sample)

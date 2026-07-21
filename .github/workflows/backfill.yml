@@ -10,7 +10,7 @@ on:
       collector:
         description: collector to backfill
         type: choice
-        options: [market_stooq, macro_alfred, edgar]
+        options: [market_yahoo, macro_alfred, edgar]
         required: true
       force:
         description: overwrite shards that already exist on HF
@@ -35,7 +35,7 @@ jobs:
       - uses: actions/setup-python@v5
         with: { python-version: "3.11" }
       - run: pip install -r requirements.txt
-      - if: ${{ inputs.collector == 'market_stooq' }}
+      - if: ${{ inputs.collector == 'market_yahoo' }}
         run: python -m scripts.build_universe --top ${{ inputs.universe_top }}
       - id: set
         run: echo "matrix=$(python -m scripts.run_collector ${{ inputs.collector }} list)" >> "$GITHUB_OUTPUT"
@@ -53,7 +53,7 @@ jobs:
       - uses: actions/setup-python@v5
         with: { python-version: "3.11" }
       - run: pip install -r requirements.txt
-      - if: ${{ inputs.collector == 'market_stooq' }}
+      - if: ${{ inputs.collector == 'market_yahoo' }}
         run: python -m scripts.build_universe --top ${{ inputs.universe_top }}
       - name: run chunk ${{ matrix.chunk }}
         run: >

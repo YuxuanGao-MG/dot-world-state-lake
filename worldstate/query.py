@@ -28,7 +28,7 @@ def _glob(domain: str, source: str) -> str:
             f"domain={domain}/source={source}/**/*.parquet")
 
 
-def as_of_prices(con, as_of: str, source: str = "stooq"):
+def as_of_prices(con, as_of: str, source: str = "yahoo"):
     """Daily bars knowable as of `as_of` (ISO timestamp)."""
     return con.execute(
         f"""SELECT entity, event_time, close, volume

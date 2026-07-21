@@ -31,13 +31,26 @@ SEED_UNIVERSE = [
 ]
 
 # --- Macro series (FRED/ALFRED vintages) ------------------------------------
-# Curated US macro. get_series_all_releases gives the real vintage history so
-# knowledge_time is the first-release date, not the latest revision.
+# Broad US macro. ALFRED gives the real vintage history so knowledge_time is the
+# first-release date, not the latest revision. Daily series (rates/FX/commod/vol)
+# have effectively one vintage; monthly/quarterly ones carry true revisions.
 MACRO_SERIES = [
+    # activity & prices
     "GDPC1", "GDP", "CPIAUCSL", "CPILFESL", "PCEPI", "PCEPILFE",
-    "UNRATE", "PAYEMS", "INDPRO", "HOUST", "RSAFS", "UMCSENT",
-    "FEDFUNDS", "DFF", "DGS2", "DGS10", "T10Y2Y", "PPIACO",
-    "M2SL", "ICSA", "PERMIT", "RETAILSMSA",
+    "UNRATE", "PAYEMS", "INDPRO", "HOUST", "PERMIT", "RSAFS", "UMCSENT",
+    "M2SL", "ICSA", "PPIACO", "RRPONTSYD",
+    # rates & curve
+    "DGS1MO", "DGS3MO", "DGS6MO", "DGS1", "DGS2", "DGS5", "DGS7",
+    "DGS10", "DGS20", "DGS30", "T10Y2Y", "T10Y3M", "DFF", "FEDFUNDS",
+    "SOFR", "MORTGAGE30US",
+    # inflation expectations
+    "T10YIE", "T5YIFR",
+    # FX
+    "DEXUSEU", "DEXJPUS", "DEXCHUS", "DEXUSUK", "DTWEXBGS",
+    # commodities
+    "DCOILWTICO", "DCOILBRENTEU", "GOLDAMGBD228NLBM", "DHHNGSP",
+    # credit & volatility
+    "VIXCLS", "BAMLH0A0HYM2", "BAMLC0A0CM",
 ]
 
 # --- HTTP politeness ---------------------------------------------------------

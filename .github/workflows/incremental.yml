@@ -21,13 +21,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        collector: [macro_alfred, edgar, market_stooq]
+        collector: [macro_alfred, edgar, market_yahoo]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with: { python-version: "3.11" }
       - run: pip install -r requirements.txt
-      - if: ${{ matrix.collector == 'market_stooq' }}
+      - if: ${{ matrix.collector == 'market_yahoo' }}
         run: python -m scripts.build_universe --top 1500
       - name: refresh ${{ matrix.collector }}
         run: python -m scripts.run_collector ${{ matrix.collector }} run-all --force

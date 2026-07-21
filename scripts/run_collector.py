@@ -13,12 +13,12 @@ import json
 import sys
 
 from worldstate import hfstore
-from worldstate.collectors.market_stooq import StooqDaily
+from worldstate.collectors.market_yahoo import YahooDaily
 from worldstate.collectors.macro_alfred import AlfredVintages
 from worldstate.collectors.edgar import EdgarIndex
 
 REGISTRY = {
-    "market_stooq": StooqDaily,
+    "market_yahoo": YahooDaily,
     "macro_alfred": AlfredVintages,
     "edgar": EdgarIndex,
 }
