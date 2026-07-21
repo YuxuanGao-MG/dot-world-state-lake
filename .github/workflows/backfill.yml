@@ -1,0 +1,61 @@
+name: backfill
+
+# Manual, per-collector backfill. A "plan" job enumerates work chunks; a matrix
+# "run" job processes one chunk each (fetch -> normalize -> push shard to HF).
+# Idempotent: shards already on HF are skipped, so re-running resumes cleanly.
+
+on:
+  workflow_dispatch:
+    inputs:
+      collector:
+        description: collector to backfill
+        type: choice
+        options: [market_stooq, macro_alfred, edgar]
+        required: true
+      force:
+        description: overwrite shards that already exist on HF
+        type: boolean
+        default: false
+      universe_top:
+        description: "(market_stooq only) cap universe size"
+        default: "1500"
+
+env:
+  HF_DATASET_REPO: ${{ vars.HF_DATASET_REPO }}
+  HF_TOKEN: ${{ secrets.HF_TOKEN }}
+  FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - run: pip install -r requirements.txt
+      - if: ${{ inputs.collector == 'market_stooq' }}
+        run: python -m scripts.build_universe --top ${{ inputs.universe_top }}
+      - id: set
+        run: echo "matrix=$(python -m scripts.run_collector ${{ inputs.collector }} list)" >> "$GITHUB_OUTPUT"
+
+  run:
+    needs: plan
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      max-parallel: 8
+      matrix:
+        chunk: ${{ fromJson(needs.plan.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - run: pip install -r requirements.txt
+      - if: ${{ inputs.collector == 'market_stooq' }}
+        run: python -m scripts.build_universe --top ${{ inputs.universe_top }}
+      - name: run chunk ${{ matrix.chunk }}
+        run: >
+          python -m scripts.run_collector ${{ inputs.collector }} run
+          --chunk "${{ matrix.chunk }}" ${{ inputs.force && '--force' || '' }}

@@ -1,0 +1,33 @@
+name: incremental
+
+# Daily refresh after backfill. Macro picks up new vintages/revisions; market
+# refreshes bars (incl. the newest day); edgar refreshes the current quarter.
+# Runs with --force so today's data overwrites the relevant shards. Light enough
+# to sit comfortably inside the Actions budget.
+
+on:
+  schedule:
+    - cron: "0 8 * * *"   # 08:00 UTC daily
+  workflow_dispatch:
+
+env:
+  HF_DATASET_REPO: ${{ vars.HF_DATASET_REPO }}
+  HF_TOKEN: ${{ secrets.HF_TOKEN }}
+  FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        collector: [macro_alfred, edgar, market_stooq]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - run: pip install -r requirements.txt
+      - if: ${{ matrix.collector == 'market_stooq' }}
+        run: python -m scripts.build_universe --top 1500
+      - name: refresh ${{ matrix.collector }}
+        run: python -m scripts.run_collector ${{ matrix.collector }} run-all --force
