@@ -108,3 +108,36 @@ class ForecastTask(Task):
         pred_up = "up" in str(action).strip().lower()
         return (1.0 if pred_up == realized_up else -1.0), {
             "t0": self._t0_price, "future": future, "realized_up": bool(realized_up)}
+
+
+class TradingTask(Task):
+    """Take a position (LONG / FLAT / SHORT) in a target each step; reward is the
+    realized PnL over the horizon (position * return, in %). Oracle-scored."""
+    name = "trading"
+
+    def __init__(self, target: str = "SPY", horizon_days: int = 5):
+        self.target = target
+        self.horizon_days = horizon_days
+        self._t0 = None
+
+    def prompt(self, env, obs: dict) -> dict:
+        px = {r["entity"]: r["close"] for r in (obs.get("prices") or [])}
+        self._t0 = px.get(self.target)
+        return {
+            "instruction": (f"Take a position in {self.target} for the next "
+                            f"{self.horizon_days} days: LONG, FLAT, or SHORT."),
+            "item": {"target": self.target, "current_price": self._t0},
+            "action_help": "Respond with 'long', 'flat', or 'short'.",
+        }
+
+    def score(self, env, action) -> tuple[float, dict]:
+        import pandas as pd
+        future = env.oracle_price(
+            self.target, env.clock.cursor + pd.Timedelta(days=self.horizon_days))
+        if self._t0 in (None, 0) or future is None:
+            return 0.0, {"skipped": "no price"}
+        ret = (future - self._t0) / self._t0
+        a = str(action).strip().lower()
+        pos = 1 if "long" in a else (-1 if "short" in a else 0)
+        return round(pos * ret * 100, 4), {"position": pos, "return_pct": round(ret * 100, 3),
+                                            "t0": self._t0, "future": future}

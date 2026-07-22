@@ -13,11 +13,12 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
 from worldstate.env.env import WorldStateEnv
-from worldstate.env.tasks import DataApprovalTask, ForecastTask
+from worldstate.env.tasks import DataApprovalTask, ForecastTask, TradingTask
 
 app = FastAPI(title="DoT Financial-Agent Gym")
 _SESSIONS: dict[str, WorldStateEnv] = {}
-_TASKS = {"data_approval": DataApprovalTask, "forecast": ForecastTask}
+_TASKS = {"data_approval": DataApprovalTask, "forecast": ForecastTask,
+          "trading": TradingTask}
 
 
 class NewSession(BaseModel):
@@ -25,6 +26,8 @@ class NewSession(BaseModel):
     start: str = "2021-01-04"
     end: str = "2024-12-31"
     step_days: int = 1
+    access_tier: str = "basic"
+    tool_budget: int = 3
 
 
 class Action(BaseModel):
@@ -41,7 +44,8 @@ def create(req: NewSession):
     if req.task not in _TASKS:
         raise HTTPException(400, f"unknown task; choose {list(_TASKS)}")
     env = WorldStateEnv(task=_TASKS[req.task](), start=req.start, end=req.end,
-                        step_days=req.step_days)
+                        step_days=req.step_days, access_tier=req.access_tier,
+                        tool_budget=req.tool_budget)
     packet = env.reset()
     sid = uuid.uuid4().hex[:12]
     _SESSIONS[sid] = env

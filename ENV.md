@@ -50,6 +50,7 @@ in the log (a baseline rule agent plays it).
 ## Roadmap
 - More observation channels (positioning, surprise index, on-chain, sector maps).
 - Richer tasks: trading (PnL reward), forecasting with calibration, anomaly triage.
-- Access tiers (free vs premium data) so trajectories include the "what's my
-  access / which tool" step — the original RL-trajectory vision.
-- Episode logging → trajectory datasets for training.
+- (done) Access tiers + tools (`tools.py`): basic/pro, budget; tool-calls are
+  intermediate steps so trajectories include the access/tool decisions.
+- (done) Trajectory logging (`trajectory.py`) -> domain=trajectories/source=env.
+- Next: wire a real LLM agent; reward shaping; larger trajectory corpora.

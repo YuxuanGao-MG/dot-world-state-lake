@@ -73,7 +73,9 @@ Add a collector: create `worldstate/collectors/<x>.py` (subclass `Collector`, im
 
 ### After data: the agent layer
 - [x] financial-agent GYM: worldstate/env/ (WorldStateEnv reset/step + FastAPI server + DataApprovalTask) — see ENV.md ✅ v0
-- [ ] tiered access model + trajectory logging (next env iteration)
+- [x] tiered access + tools (basic/pro, budget) — worldstate/env/tools.py ✅
+- [x] trajectory logging -> domain=trajectories/source=env (RL training data) ✅
+- [x] richer tasks: TradingTask (PnL), ForecastTask ✅
 - [ ] **data-approval** case study (the original use case)
 
 ## Status log (update as we go)
