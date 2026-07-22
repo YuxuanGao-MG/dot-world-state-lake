@@ -22,9 +22,9 @@ from huggingface_hub import HfApi, CommitOperationAdd
 from config import settings
 
 
-def _with_retry(fn, *, tries: int = 6, base: float = 3.0):
-    """Retry an HF API call with exponential backoff — HF rate-limits (429) and
-    has transient 5xx under many concurrent jobs."""
+def _with_retry(fn, *, tries: int = 8, base: float = 5.0):
+    """Retry an HF API call, honoring Retry-After and backing off long enough to
+    ride out HF's account-level 'api' rate limit under many concurrent jobs."""
     last = None
     for i in range(tries):
         try:
@@ -33,7 +33,15 @@ def _with_retry(fn, *, tries: int = 6, base: float = 3.0):
             last = e
             if i == tries - 1:
                 raise
-            time.sleep(base * (2 ** i))
+            wait = base * (2 ** i)
+            resp = getattr(e, "response", None)
+            ra = getattr(resp, "headers", {}).get("Retry-After") if resp is not None else None
+            if ra:
+                try:
+                    wait = max(wait, float(ra))
+                except (TypeError, ValueError):
+                    pass
+            time.sleep(min(wait, 120))
     raise last  # pragma: no cover
 
 
@@ -57,14 +65,15 @@ def api() -> HfApi:
 
 
 def ensure_repo() -> str:
-    """Create the private dataset repo if missing; return its id. Tolerant of HF
-    429s under concurrency — the repo already exists once bootstrapped, so a
-    failed create here is harmless."""
+    """Return the dataset repo id. The repo is created once at bootstrap; every
+    job calling create_repo just burns HF's 'api' rate budget, so this is a no-op
+    unless WORLDSTATE_INIT_REPO is set (used only for first-time setup)."""
     repo = _repo()
-    try:
-        api().create_repo(repo, repo_type=settings.HF_REPO_TYPE, private=True, exist_ok=True)
-    except Exception:
-        pass
+    if os.environ.get("WORLDSTATE_INIT_REPO"):
+        try:
+            api().create_repo(repo, repo_type=settings.HF_REPO_TYPE, private=True, exist_ok=True)
+        except Exception:
+            pass
     return repo
 
 

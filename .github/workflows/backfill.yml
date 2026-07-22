@@ -45,7 +45,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
-      max-parallel: 8
+      max-parallel: 4   # keep concurrent HF commits low — HF rate-limits the 'api'
       matrix:
         chunk: ${{ fromJson(needs.plan.outputs.matrix) }}
     steps:
