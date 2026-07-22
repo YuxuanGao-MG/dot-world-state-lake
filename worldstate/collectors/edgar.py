@@ -13,7 +13,7 @@ import pandas as pd
 from datetime import date
 
 from config import settings
-from worldstate import hfstore, normalize
+from worldstate import store as hfstore, normalize
 from worldstate.collectors.base import Collector, RateLimiter
 
 MASTER = "https://www.sec.gov/Archives/edgar/full-index/{year}/QTR{q}/master.idx"

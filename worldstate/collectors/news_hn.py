@@ -11,7 +11,7 @@ import pandas as pd
 from datetime import datetime, timezone
 
 from config import settings
-from worldstate import hfstore, normalize
+from worldstate import store as hfstore, normalize
 from worldstate.collectors.base import Collector, RateLimiter
 
 SEARCH = "http://hn.algolia.com/api/v1/search_by_date"

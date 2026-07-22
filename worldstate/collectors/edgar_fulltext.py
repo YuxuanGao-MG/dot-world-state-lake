@@ -15,7 +15,7 @@ import lxml.html
 import pandas as pd
 
 from config import settings
-from worldstate import hfstore, normalize
+from worldstate import store as hfstore, normalize
 from worldstate.collectors.base import Collector, RateLimiter
 
 SUBS_URL = "https://data.sec.gov/submissions/CIK{cik:010d}.json"

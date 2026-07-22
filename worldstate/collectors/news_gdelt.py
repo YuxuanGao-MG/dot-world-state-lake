@@ -13,7 +13,7 @@ from __future__ import annotations
 import pandas as pd
 
 from config import settings
-from worldstate import hfstore, normalize
+from worldstate import store as hfstore, normalize
 from worldstate.collectors.base import Collector, RateLimiter
 
 DOC = "https://api.gdeltproject.org/api/v2/doc/doc"

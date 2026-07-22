@@ -10,7 +10,7 @@ from datetime import date
 from urllib.parse import quote
 
 from config import settings
-from worldstate import hfstore, normalize
+from worldstate import store as hfstore, normalize
 from worldstate.collectors.base import Collector, RateLimiter
 
 BASE = ("https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/"

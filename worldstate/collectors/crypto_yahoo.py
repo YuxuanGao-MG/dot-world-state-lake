@@ -10,7 +10,7 @@ import pandas as pd
 import yfinance as yf
 
 from config import settings
-from worldstate import hfstore, normalize
+from worldstate import store as hfstore, normalize
 from worldstate.collectors.base import Collector
 
 FIELDS = ["Open", "High", "Low", "Close", "Adj Close", "Volume"]

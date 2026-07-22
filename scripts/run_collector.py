@@ -12,7 +12,7 @@ import argparse
 import json
 import sys
 
-from worldstate import hfstore
+from worldstate import store as hfstore
 from worldstate.collectors.market_yahoo import YahooDaily
 from worldstate.collectors.macro_alfred import AlfredVintages
 from worldstate.collectors.edgar import EdgarIndex

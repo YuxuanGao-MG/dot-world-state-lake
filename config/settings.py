@@ -7,12 +7,20 @@ from __future__ import annotations
 
 import os
 
-# --- Hugging Face dataset repo (the canonical store) ------------------------
-# Set as a GitHub Actions repo *variable* HF_DATASET_REPO, e.g. "user/world-state-lake".
+# --- Storage backend --------------------------------------------------------
+# "s3" (fast, high-concurrency, primary) or "hf" (git-based, publish/mirror).
+STORAGE_BACKEND = os.environ.get("STORAGE_BACKEND", "s3")
+
+# AWS S3 (primary lake). Bucket + region as GH Actions *variables*; credentials
+# as secrets (standard boto3 env vars AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY).
+S3_BUCKET = os.environ.get("S3_BUCKET", "")
+AWS_REGION = os.environ.get("AWS_REGION", "us-east-1")
+
+# Hugging Face dataset repo (optional publish/mirror target).
 HF_DATASET_REPO = os.environ.get("HF_DATASET_REPO", "")
 HF_REPO_TYPE = "dataset"
 
-# Layout inside the HF repo. Hive-style partitioning so DuckDB / datasets can
+# Layout inside the store. Hive-style partitioning so DuckDB / datasets can
 # partition-prune on domain, source and date.
 DATA_PREFIX = "data"  # data/domain=.../source=.../year=.../part-*.parquet
 

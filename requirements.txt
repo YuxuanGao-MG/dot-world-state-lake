@@ -5,3 +5,4 @@ duckdb>=1.0
 yfinance>=0.2.40
 lxml>=5.0
 huggingface_hub>=0.24
+boto3>=1.34
