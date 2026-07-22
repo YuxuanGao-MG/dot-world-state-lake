@@ -41,6 +41,8 @@ from worldstate.collectors.predict_polymarket import PredictPolymarket
 from worldstate.collectors.crypto_funding import CryptoFunding
 from worldstate.collectors.crypto_vol import CryptoVol
 from worldstate.collectors.crypto_fng import CryptoFearGreed
+from worldstate.collectors.defillama_flows import DefiLlamaFlows
+from worldstate.collectors.predict_kalshi import PredictKalshi
 
 REGISTRY = {
     "market_yahoo": YahooDaily,
@@ -71,6 +73,8 @@ REGISTRY = {
     "crypto_funding": CryptoFunding,
     "crypto_vol": CryptoVol,
     "crypto_fng": CryptoFearGreed,
+    "defillama_flows": DefiLlamaFlows,
+    "predict_kalshi": PredictKalshi,
 }
 
 

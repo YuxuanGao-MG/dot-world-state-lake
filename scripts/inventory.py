@@ -9,6 +9,7 @@ import collections
 import boto3
 
 from config import settings
+from worldstate import provenance as P
 
 
 def main():
@@ -28,10 +29,17 @@ def main():
             by[grp][1] += 1
             tb += obj["Size"]
             tf += 1
+    def cls_of(k):
+        parts = dict(seg.split("=", 1) for seg in k.split("/") if "=" in seg)
+        return P.pit_class(parts.get("domain", ""), parts.get("source", ""))
+
     print(f"=== s3://{bucket}/{settings.DATA_PREFIX} ===")
+    print(f"  {'source':36} {'files':>5} {'size':>12}  pit_class")
     for k in sorted(by):
-        print(f"  {k:36} {by[k][1]:>5} files  {by[k][0]/1e6:10.1f} MB")
-    print(f"  {'TOTAL':36} {tf:>5} files  {tb/1e6:10.1f} MB  ({tb/1e9:.3f} GB)")
+        c = cls_of(k)
+        flag = "" if c in P.HISTORICAL_SAFE else "  <-- forward-only/caution"
+        print(f"  {k:36} {by[k][1]:>5} {by[k][0]/1e6:9.1f} MB  {c}{flag}")
+    print(f"  {'TOTAL':36} {tf:>5} {tb/1e6:9.1f} MB  ({tb/1e9:.3f} GB)")
 
 
 if __name__ == "__main__":
