@@ -31,6 +31,7 @@ from worldstate.collectors.holdings_13f import Holdings13F
 from worldstate.collectors.crypto_onchain import CryptoOnchain
 from worldstate.collectors.eia_energy import EiaEnergy
 from worldstate.collectors.security_master import SecurityMaster
+from worldstate.collectors.surprise_index import SurpriseIndex
 
 REGISTRY = {
     "market_yahoo": YahooDaily,
@@ -51,6 +52,7 @@ REGISTRY = {
     "crypto_onchain": CryptoOnchain,
     "eia_energy": EiaEnergy,
     "security_master": SecurityMaster,
+    "surprise_index": SurpriseIndex,
 }
 
 

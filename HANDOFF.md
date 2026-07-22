@@ -68,7 +68,7 @@ Add a collector: create `worldstate/collectors/<x>.py` (subclass `Collector`, im
 - [!] `gdelt_gkg` article-level = GDELT 429-blocked; full press BODIES at scale = Common Crawl News (heavy, future)
 - [x] `security_master` — SEC identity + S&P500 PIT membership (kills survivorship bias) ✅ built+firing
 - [ ] `entity_graph` — link filings/news/prices to canonical entities; extract supply-chain/customer/competitor from 10-K text (NLP)
-- [ ] `surprise_index` — our own econ-surprise (FRED first-release vs naive forecast)
+- [x] `surprise_index` — derived econ-surprise from our macro first-release (reads S3) ✅ built+firing
 - [ ] `feature_layer` — rolling vol/corr, factor exposures, event windows, sentiment aggregates
 
 ### After data: the agent layer
