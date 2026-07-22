@@ -49,11 +49,11 @@ Add a collector: create `worldstate/collectors/<x>.py` (subclass `Collector`, im
 
 ### Tier 1 — free, PIT-clean, high signal (positioning / ownership / policy)
 - [x] `insider_form4` — SEC Form 4 insider buys/sells (EDGAR XML) ✅ built+firing
-- [ ] `holdings_13f` — SEC 13F institutional holdings (EDGAR)
+- [x] `holdings_13f` — SEC 13F institutional holdings (EDGAR) ✅ built+firing
 - [ ] `stakes_13dg` — SEC 13D/13G activist / >5% stakes (EDGAR)
 - [x] `short_finra` — FINRA daily short volume (keyless CDN files) ✅ built+firing
 - [x] `cftc_cot` — CFTC Commitments of Traders, weekly positioning (Socrata API) ✅ built+firing
-- [ ] `fed_text` — FOMC statements/minutes/speeches/Beige Book (federalreserve.gov)
+- [x] `fed_text` — FOMC statements+minutes (federalreserve.gov) ✅ built+firing
 - [x] `treasury_auctions` — Treasury issuance/auctions (TreasuryDirect API) ✅ built+firing
 
 ### Tier 2 — free-with-key / light engineering (real-economy + derivatives)

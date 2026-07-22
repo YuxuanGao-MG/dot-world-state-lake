@@ -120,6 +120,17 @@ USER_AGENT = os.environ.get(
 SEC_RATE_LIMIT_HZ = 8.0   # SEC allows 10 req/s; stay under.
 HTTP_TIMEOUT = 30
 
+# --- 13F institutional managers (resolved to CIK via browse-edgar at runtime) -
+MANAGERS_13F = [
+    "Berkshire Hathaway", "BlackRock", "Vanguard Group", "State Street Corp",
+    "Bridgewater Associates", "Renaissance Technologies", "Citadel Advisors",
+    "Two Sigma Investments", "Tiger Global Management", "Coatue Management",
+    "Baupost Group", "Pershing Square Capital", "Third Point", "Appaloosa",
+    "Soros Fund Management", "Millennium Management", "Point72 Asset Management",
+    "Lone Pine Capital", "Viking Global Investors", "Greenlight Capital",
+    "Scion Asset Management", "ARK Investment Management", "Elliott Investment",
+]
+
 # --- EDGAR full-text (filing bodies) ----------------------------------------
 EDGAR_FULLTEXT_FORMS = ["8-K", "10-K", "10-Q"]   # material events + core disclosures
 EDGAR_TEXT_MAXLEN = 800_000                       # cap per-doc text to bound shard size

@@ -26,6 +26,8 @@ from worldstate.collectors.cftc_cot import CftcCot
 from worldstate.collectors.short_finra import FinraShort
 from worldstate.collectors.treasury_auctions import TreasuryAuctions
 from worldstate.collectors.insider_form4 import InsiderForm4
+from worldstate.collectors.fed_text import FomcText
+from worldstate.collectors.holdings_13f import Holdings13F
 
 REGISTRY = {
     "market_yahoo": YahooDaily,
@@ -41,6 +43,8 @@ REGISTRY = {
     "short_finra": FinraShort,
     "treasury_auctions": TreasuryAuctions,
     "insider_form4": InsiderForm4,
+    "fed_text": FomcText,
+    "holdings_13f": Holdings13F,
 }
 
 
