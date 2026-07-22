@@ -30,6 +30,7 @@ from worldstate.collectors.fed_text import FomcText
 from worldstate.collectors.holdings_13f import Holdings13F
 from worldstate.collectors.crypto_onchain import CryptoOnchain
 from worldstate.collectors.eia_energy import EiaEnergy
+from worldstate.collectors.security_master import SecurityMaster
 
 REGISTRY = {
     "market_yahoo": YahooDaily,
@@ -49,6 +50,7 @@ REGISTRY = {
     "holdings_13f": Holdings13F,
     "crypto_onchain": CryptoOnchain,
     "eia_energy": EiaEnergy,
+    "security_master": SecurityMaster,
 }
 
 

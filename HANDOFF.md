@@ -65,8 +65,8 @@ Add a collector: create `worldstate/collectors/<x>.py` (subclass `Collector`, im
 - [x] `crypto_onchain` — BTC on-chain metrics (Blockchain.com, keyless) ✅ built+firing
 
 ### Tier 3 — engineering bets (biggest long-term payoff)
-- [ ] `news_ccnews` / `gdelt_gkg` — full press bodies at web scale (Common Crawl News / GDELT GKG)
-- [ ] `security_master` — PIT index membership + delistings + ticker↔CIK↔CUSIP (kills survivorship bias)
+- [!] `gdelt_gkg` article-level = GDELT 429-blocked; full press BODIES at scale = Common Crawl News (heavy, future)
+- [x] `security_master` — SEC identity + S&P500 PIT membership (kills survivorship bias) ✅ built+firing
 - [ ] `entity_graph` — link filings/news/prices to canonical entities; extract supply-chain/customer/competitor from 10-K text (NLP)
 - [ ] `surprise_index` — our own econ-surprise (FRED first-release vs naive forecast)
 - [ ] `feature_layer` — rolling vol/corr, factor exposures, event windows, sentiment aggregates
