@@ -38,6 +38,9 @@ from worldstate.collectors.arxiv_papers import ArxivPapers
 from worldstate.collectors.predict_manifold import PredictManifold
 from worldstate.collectors.nasa_events import NasaEvents
 from worldstate.collectors.predict_polymarket import PredictPolymarket
+from worldstate.collectors.crypto_funding import CryptoFunding
+from worldstate.collectors.crypto_vol import CryptoVol
+from worldstate.collectors.crypto_fng import CryptoFearGreed
 
 REGISTRY = {
     "market_yahoo": YahooDaily,
@@ -65,6 +68,9 @@ REGISTRY = {
     "predict_manifold": PredictManifold,
     "nasa_events": NasaEvents,
     "predict_polymarket": PredictPolymarket,
+    "crypto_funding": CryptoFunding,
+    "crypto_vol": CryptoVol,
+    "crypto_fng": CryptoFearGreed,
 }
 
 

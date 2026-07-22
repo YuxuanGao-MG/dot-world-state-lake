@@ -18,8 +18,10 @@ SEARCH = "https://api.manifold.markets/v0/search-markets"
 BETS = "https://api.manifold.markets/v0/bets"
 TOPICS = ["recession", "inflation", "federal reserve", "interest rates",
           "stock market", "bitcoin", "ethereum", "election", "gdp",
-          "unemployment", "artificial intelligence", "oil price"]
-MARKETS_PER_TOPIC = 20
+          "unemployment", "artificial intelligence", "oil price",
+          "nvidia", "tesla", "rate cut", "government shutdown", "china economy",
+          ]
+MARKETS_PER_TOPIC = 25
 
 
 class PredictManifold(Collector):

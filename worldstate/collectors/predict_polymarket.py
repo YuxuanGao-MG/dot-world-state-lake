@@ -17,7 +17,7 @@ from worldstate.collectors.base import Collector, RateLimiter
 GAMMA = "https://gamma-api.polymarket.com/markets"
 HIST = "https://clob.polymarket.com/prices-history"
 PAGE = 100
-PAGES = 4
+PAGES = 8
 MIN_VOL = 50000
 
 

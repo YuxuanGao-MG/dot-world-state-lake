@@ -90,3 +90,10 @@ Add a collector: create `worldstate/collectors/<x>.py` (subclass `Collector`, im
 - [x] `predict_polymarket` — real-money market probabilities (keyless CLOB history)
 - [x] `nasa_events` — NASA EONET natural-disaster events (keyless)
 - [ ] next: PubMed/USPTO, GitHub activity, Wikidata graph, global macro (vintage-aware only)
+
+### Deep crypto + prediction markets (institutional interest)
+- [x] `crypto_funding` — OKX perp funding rates (positioning/basis; ~3mo depth, accrues forward)
+- [x] `crypto_vol` — Deribit DVOL implied-vol index (crypto VIX; BTC/ETH)
+- [x] `crypto_fng` — crypto Fear & Greed sentiment (full history)
+- [x] deepened predict_manifold (17 topics) + predict_polymarket (8 pages)
+- [ ] next: DefiLlama DEX-volume/fees, Metaculus (403 — needs headers), Kalshi (auth via existing creds)
