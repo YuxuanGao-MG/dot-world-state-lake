@@ -43,28 +43,44 @@ class AlfredVintages(Collector):
             # Missing optional key must not red-X the daily cron; skip gracefully.
             return {"series": series, "skipped_no_key": True}
 
-        self.rl.wait()
-        params = {
-            "series_id": series, "api_key": self.key, "file_type": "json",
-            "realtime_start": "1776-07-04", "realtime_end": "9999-12-31",
-            "observation_start": settings.BACKFILL_START,
-        }
-        r = self.session.get(ALFRED_URL, params=params, timeout=settings.HTTP_TIMEOUT)
-        r.raise_for_status()
-        obs = r.json().get("observations", [])
+        def _fetch(vintage: bool):
+            p = {"series_id": series, "api_key": self.key, "file_type": "json",
+                 "observation_start": settings.BACKFILL_START}
+            if vintage:
+                p["realtime_start"], p["realtime_end"] = "1776-07-04", "9999-12-31"
+            self.rl.wait()
+            return self.session.get(ALFRED_URL, params=p, timeout=settings.HTTP_TIMEOUT)
+
+        # Try full vintage history; some (mostly daily) series 400 on the wide
+        # realtime range, so fall back to latest values. Never crash the job.
+        try:
+            r = _fetch(vintage=True)
+            vintage = r.status_code == 200
+            if not vintage:
+                r = _fetch(vintage=False)
+            if r.status_code != 200:
+                return {"series": series, "skipped_error": r.status_code}
+            obs = r.json().get("observations", [])
+        except Exception as e:
+            return {"series": series, "skipped_error": type(e).__name__}
+
         rows = [o for o in obs if o.get("value", ".") != "."]
         if not rows:
             return {"series": series, "rows": 0, "empty": True}
 
         df = pd.DataFrame(rows)
+        event = pd.to_datetime(df["date"], utc=True)
+        if vintage:
+            know = pd.to_datetime(df["realtime_start"], utc=True)
+            vid = df["realtime_start"].astype(str).values
+        else:
+            know = event + pd.Timedelta(days=1)  # no vintage; known ~next day
+            vid = ""
         payload = pd.DataFrame({"value": pd.to_numeric(df["value"], errors="coerce")})
         table = normalize.to_table(
             domain=self.domain, source=self.source, payload=payload,
-            event_time=pd.to_datetime(df["date"], utc=True),
-            knowledge_time=pd.to_datetime(df["realtime_start"], utc=True),
-            entity=series,
-            source_url=f"{ALFRED_URL}?series_id={series}",
-            vintage_id=df["realtime_start"].astype(str).values,
+            event_time=event, knowledge_time=know, entity=series,
+            source_url=f"{ALFRED_URL}?series_id={series}", vintage_id=vid,
         )
         hfstore.upload_table(table, path, overwrite=force)
-        return {"series": series, "rows": table.num_rows, "path": path}
+        return {"series": series, "rows": table.num_rows, "vintage": vintage, "path": path}
