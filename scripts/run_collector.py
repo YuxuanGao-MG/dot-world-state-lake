@@ -22,6 +22,9 @@ from worldstate.collectors.news_hn import HackerNews
 from worldstate.collectors.wiki_pageviews import WikiPageviews
 from worldstate.collectors.fundamentals_sec import SecFundamentals
 from worldstate.collectors.edgar_fulltext import EdgarFulltext
+from worldstate.collectors.cftc_cot import CftcCot
+from worldstate.collectors.short_finra import FinraShort
+from worldstate.collectors.treasury_auctions import TreasuryAuctions
 
 REGISTRY = {
     "market_yahoo": YahooDaily,
@@ -33,6 +36,9 @@ REGISTRY = {
     "news_hn": HackerNews,
     "wiki_pageviews": WikiPageviews,
     "fundamentals_sec": SecFundamentals,
+    "cftc_cot": CftcCot,
+    "short_finra": FinraShort,
+    "treasury_auctions": TreasuryAuctions,
 }
 
 

@@ -26,7 +26,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        collector: [macro_alfred, edgar, edgar_fulltext, market_yahoo, crypto_yahoo, news_gdelt, news_hn, wiki_pageviews, fundamentals_sec]
+        collector: [macro_alfred, edgar, edgar_fulltext, market_yahoo, crypto_yahoo, news_gdelt, news_hn, wiki_pageviews, fundamentals_sec, cftc_cot, short_finra, treasury_auctions]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
