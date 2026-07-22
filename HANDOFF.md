@@ -94,7 +94,7 @@ Add a collector: create `worldstate/collectors/<x>.py` (subclass `Collector`, im
 ### PIT governance (avoid env contamination)
 - **`PIT.md`** classifies every source by trust: immutable/vintage/derived (historical-safe) vs forward_limited/revised_soft/snapshot_forward (forward-only/caution) vs excluded_hazard. Auto-generated from `worldstate/provenance.py` via `scripts.gen_pit_doc`.
 - The `status` workflow now prints each source's `pit_class`. Historical training episodes must use only historical-safe classes; the bitemporal knowledge_time enforces it.
-- [x] `defillama_flows` (DEX volume/fees/revenue; revised_soft) ; [~] `predict_kalshi` (keyless public API works, candle windows need debug)
+- [x] `defillama_flows` (DEX volume/fees/revenue; revised_soft) ; [x] `predict_kalshi` (regulated event contracts, keyless — FIXED: volume_fp filter + _dollars candles)
 
 ### Deep crypto + prediction markets (institutional interest)
 - [x] `crypto_funding` — OKX perp funding rates (positioning/basis; ~3mo depth, accrues forward)

@@ -1,8 +1,8 @@
 """Regulated event-contract probabilities from Kalshi (keyless public market data).
 
-Kalshi's read API is public. For finance/econ series we pull each market's daily
-candlesticks over its own trading window (created -> close), where the traded
-price = implied probability. Immutable, forward-looking -> clean PIT.
+Kalshi's read API is public. For LIQUID finance/econ markets we pull each market's
+daily candlesticks over its trading window; the traded price (`_dollars`, already
+0-1) = implied probability. Immutable, forward-looking -> clean PIT.
 knowledge_time = event_time = day. entity = market ticker. One shard per category.
 """
 from __future__ import annotations
@@ -15,7 +15,10 @@ from worldstate.collectors.base import Collector, RateLimiter
 
 BASE = "https://api.elections.kalshi.com/trade-api/v2"
 CATEGORIES = ["Financials", "Economics"]
-MAX_SERIES = 30
+KEYWORDS = ("FED", "CPI", "GDP", "RATE", "RECESSION", "NASDAQ", "SP500", "SPX",
+            "INFLATION", "JOBS", "PAYROLL", "UNRATE", "BTC", "ETH", "YIELD",
+            "TREASURY", "STOCK", "DOW", "PPI")
+MAX_SERIES = 60
 MAX_MARKETS = 8
 
 
@@ -24,16 +27,25 @@ def _ts(iso):
     return None if pd.isna(t) else int(t.timestamp())
 
 
+def _f(v):
+    try:
+        return float(v)
+    except (TypeError, ValueError):
+        return None
+
+
 def _candle_prob(c):
-    """Pull a 0-1 probability from a Kalshi candle, tolerant of field layout."""
-    for path in (("price", "mean"), ("price", "close"), ("yes_ask", "close"),
-                 ("yes_bid", "close")):
-        v = c
-        for k in path:
-            v = v.get(k) if isinstance(v, dict) else None
-        if isinstance(v, (int, float)) and v is not None:
-            return float(v) / 100.0
-    return None
+    """Implied probability (0-1) from a Kalshi candle. Fields are _dollars strings."""
+    p = c.get("price") or {}
+    for k in ("close_dollars", "mean_dollars", "previous_dollars"):
+        v = _f(p.get(k))
+        if v is not None:
+            return v
+    ya = _f((c.get("yes_ask") or {}).get("close_dollars"))
+    yb = _f((c.get("yes_bid") or {}).get("close_dollars"))
+    if ya and yb:
+        return (ya + yb) / 2
+    return ya or yb
 
 
 class PredictKalshi(Collector):
@@ -42,7 +54,7 @@ class PredictKalshi(Collector):
 
     def __init__(self):
         super().__init__()
-        self.rl = RateLimiter(hz=5.0)
+        self.rl = RateLimiter(hz=6.0)
 
     def chunks(self) -> list[str]:
         return list(CATEGORIES)
@@ -51,18 +63,21 @@ class PredictKalshi(Collector):
         self.rl.wait()
         r = self.session.get(f"{BASE}/series", timeout=60)
         r.raise_for_status()
-        ser = [s["ticker"] for s in r.json().get("series", [])
-               if s.get("category") == category and s.get("ticker")]
-        return ser[:MAX_SERIES]
+        out = [s["ticker"] for s in r.json().get("series", [])
+               if s.get("category") == category and s.get("ticker")
+               and any(k in s["ticker"].upper() for k in KEYWORDS)]
+        return out[:MAX_SERIES]
 
     def _markets(self, series: str) -> list[dict]:
         out = []
-        for status in ("settled", "open"):
+        for status in ("settled", "closed", "open"):
             self.rl.wait()
             r = self.session.get(f"{BASE}/markets", params={
-                "series_ticker": series, "status": status, "limit": 50}, timeout=30)
+                "series_ticker": series, "status": status, "limit": 100}, timeout=30)
             if r.status_code == 200:
-                out += r.json().get("markets", [])
+                out += [m for m in r.json().get("markets", [])
+                        if (_f(m.get("volume_fp")) or 0) > 0]
+        out.sort(key=lambda m: -(_f(m.get("volume_fp")) or 0))
         return out[:MAX_MARKETS]
 
     def _candles(self, series: str, m: dict) -> pd.DataFrame:
@@ -111,7 +126,7 @@ class PredictKalshi(Collector):
                 frames.append(pd.DataFrame({
                     "event_time": daily["day"].values,
                     "entity": str(m["ticker"]),
-                    "title": str(m.get("title", m.get("subtitle", "")))[:300],
+                    "title": str(m.get("title", ""))[:300],
                     "probability": daily["prob"].astype("float64").values,
                     "series": series,
                 }))
