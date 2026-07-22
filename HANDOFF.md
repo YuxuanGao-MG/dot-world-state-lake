@@ -1,104 +1,65 @@
 # DoT World-State Lake — Handoff / Continuity Doc
 
-Read this to pick up the project from anywhere (phone, new Claude session, new machine).
-Repo: **github.com/YuxuanGao-MG/dot-world-state-lake** (public code) · Data: **private S3 `dot-financial-world-env`** (us-east-2).
+Single entry point to pick up this project from anywhere (phone, new Claude session, new machine).
+**Repo:** github.com/YuxuanGao-MG/dot-world-state-lake (public code) · **Data:** private S3 `dot-financial-world-env` (us-east-2).
+Companion docs: **`PIT.md`** (data trust classification) · **`ENV.md`** (the agent gym) · **`README.md`**.
 
 ---
 
 ## What this is
-A **point-in-time (bitemporal) financial world-state corpus** for training agents with RL, under the *Drift of Thought* research. The goal is an *environment an agent can explore*: at any timestamp query "what was knowable then" — prices, macro, filings, news, positioning — with **zero lookahead**.
+A **point-in-time (bitemporal) financial world-state corpus** for training agents with RL, under the *Drift of Thought* research. Every row carries `event_time` (when the fact is about) and `knowledge_time` (when it became public). An `as_of(t)` query returns only rows with `knowledge_time <= t` — so an agent can explore the world *as it was knowable then*, with **zero lookahead**. On top of the data sits a **gym** (an environment agents play in) and a **trajectory pipeline** that turns episodes into RL training data.
 
-**Every row carries two timestamps:** `event_time` (when the fact is about) and `knowledge_time` (when it became public). An `as_of(t)` query returns only rows with `knowledge_time <= t`, picking the latest vintage for revisable series. That's the whole value — lookahead is structurally impossible.
+## Architecture — cloud-native & autonomous
+**GitHub Actions = compute. AWS S3 = storage. Nothing runs locally, and no session needs to stay open.**
+Each collector fetches a source → normalizes to the bitemporal envelope → writes a Parquet shard to S3 (idempotent = the checkpoint). The **`incremental` cron runs daily at 08:00 UTC** and refreshes all sources by itself. Close your laptop; it keeps running. DuckDB queries the Parquet directly over `s3://`.
 
-## Architecture (one paragraph)
-**GitHub Actions = compute. AWS S3 = storage. Nothing runs locally.** Each collector is a small Python class that fetches → normalizes to the bitemporal envelope → writes a Parquet shard to S3. Writes are idempotent (skip if the object exists) = the checkpoint. A `backfill` workflow fans out one job per chunk (matrix, parallel 16); an `incremental` cron refreshes daily. DuckDB queries the Parquet directly over `s3://`.
-
-## Key facts / credentials (already configured)
-- **S3 bucket:** `dot-financial-world-env` (region `us-east-2`, private, SSE-S3). IAM user `ClaudeCode`.
-- **GitHub Actions secrets:** `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `FRED_API_KEY`, `HF_TOKEN` (HF is now just an optional mirror).
-- **GitHub Actions variables:** `S3_BUCKET`, `AWS_REGION`, `HF_DATASET_REPO`.
-- **Storage backend** is a dispatcher (`worldstate/store.py`): `STORAGE_BACKEND=s3` (default) or `hf`.
-
-## Live collectors (backend-agnostic, in `worldstate/collectors/`)
-market_yahoo · crypto_yahoo · macro_alfred (FRED vintages) · edgar (filing index) · edgar_fulltext (filing bodies) · fundamentals_sec (XBRL) · news_gdelt · news_hn · wiki_pageviews
+## Configured (nothing to set up)
+- **S3:** bucket `dot-financial-world-env` (us-east-2, private, SSE-S3), IAM user `ClaudeCode`.
+- **Actions secrets:** `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `FRED_API_KEY`, `EIA_API_KEY`, `OPENROUTER_API_KEY` (OpenMesh LLM API), `HF_TOKEN` (optional mirror).
+- **Actions variables:** `S3_BUCKET`, `AWS_REGION`, `HF_DATASET_REPO`.
 
 ---
 
-## How to operate it FROM YOUR PHONE
-Use the **GitHub mobile app / github.com** — no terminal needed:
+## Operate it FROM YOUR PHONE (GitHub app → Actions tab)
+- **`status`** → Run → read the log: S3 size + `pit_class` per source (flags forward-only sources).
+- **`backfill`** → Run → pick a `collector` → runs one source (idempotent; `force=true` overwrites).
+- **`collect-trajectories`** → Run → pick task/agent/model → writes RL trajectories to S3. `agent=llm` + a `model` uses a real LLM.
+- **`env-demo`** → Run → watch a baseline agent play the gym.
+- Red run? Open it, read the failing job log. Daily `incremental` refresh is automatic.
 
-1. **See current data size:** repo → **Actions** tab → **status** workflow → **Run workflow** → open the run → read the log (prints MB per source + total).
-2. **Backfill a source:** Actions → **backfill** → **Run workflow** → pick a `collector` from the dropdown → Run. Re-running is safe (idempotent; existing shards skip). Add `force=true` to overwrite.
-3. **Check progress:** Actions tab shows every run green/red. Red = open it, read the failing job log.
-4. **Daily refresh** runs automatically (incremental cron, 08:00 UTC).
-
-## How to resume with Claude Code (new session)
-Point Claude at the repo and say: *"Continue the DoT world-state lake — read HANDOFF.md and ROADMAP below, then build the next unchecked tier."* Claude has memory of this project too (`project_dot_world_state_lake`).
-
-Common commands (terminal):
+## Resume with Claude Code (new session)
+Say: *"Continue the DoT world-state lake — read HANDOFF.md, PIT.md, ENV.md, then pick up the roadmap."* Claude also has memory (`project_dot_world_state_lake`). Terminal:
 ```
-gh workflow run backfill.yml -R YuxuanGao-MG/dot-world-state-lake -f collector=<name> -f universe_top=1500
+gh workflow run backfill.yml -R YuxuanGao-MG/dot-world-state-lake -f collector=<name> [-f universe_top=1500]
 gh workflow run status.yml   -R YuxuanGao-MG/dot-world-state-lake
 gh run list -R YuxuanGao-MG/dot-world-state-lake -L 10
 ```
-Add a collector: create `worldstate/collectors/<x>.py` (subclass `Collector`, impl `chunks()` + `run_chunk()`), register in `scripts/run_collector.py`, add to both workflows' collector lists. Validate the source API before firing (lesson: Stooq is JS-walled, CoinGecko needs a key, GDELT 429s — always probe first).
+Add a collector: `worldstate/collectors/<x>.py` (subclass `Collector`, `chunks()`+`run_chunk()`), register in `scripts/run_collector.py`, add to both workflows, **classify it in `worldstate/provenance.py`**, then `python -m scripts.gen_pit_doc`. Always probe the source API before firing.
 
 ---
 
-## ROADMAP — expansion tiers (check off as built)
+## The 30 collectors (by dimension)
+- **Prices:** market_yahoo (US equities/ETFs), crypto_yahoo
+- **Crypto (deep):** crypto_onchain (BTC on-chain), defillama + defillama_flows (DeFi TVL/DEX/fees), crypto_funding (OKX funding), crypto_vol (Deribit DVOL implied vol), crypto_fng (Fear & Greed)
+- **Macro:** macro_alfred (FRED vintages), surprise_index (derived), treasury_auctions, eia_energy
+- **SEC:** edgar (index), edgar_fulltext (bodies), fundamentals_sec (XBRL), insider_form4, holdings_13f
+- **Positioning / policy:** cftc_cot, short_finra, fed_text (FOMC)
+- **Prediction markets:** predict_kalshi (regulated), predict_polymarket (real-money), predict_manifold (crowd)
+- **News / attention / sentiment:** news_gdelt, news_hn, wiki_pageviews
+- **Events / research:** usgs_quakes, nasa_events, arxiv_papers
+- **Reference:** security_master (identity + S&P 500 PIT membership)
 
-### Tier 1 — free, PIT-clean, high signal (positioning / ownership / policy)
-- [x] `insider_form4` — SEC Form 4 insider buys/sells (EDGAR XML) ✅ built+firing
-- [x] `holdings_13f` — SEC 13F institutional holdings (EDGAR) ✅ built+firing
-- [ ] `stakes_13dg` — SEC 13D/13G activist / >5% stakes (EDGAR)
-- [x] `short_finra` — FINRA daily short volume (keyless CDN files) ✅ built+firing
-- [x] `cftc_cot` — CFTC Commitments of Traders, weekly positioning (Socrata API) ✅ built+firing
-- [x] `fed_text` — FOMC statements+minutes (federalreserve.gov) ✅ built+firing
-- [x] `treasury_auctions` — Treasury issuance/auctions (TreasuryDirect API) ✅ built+firing
+## PIT governance (see `PIT.md`)
+Every source is classified in `worldstate/provenance.py`: **immutable / vintage / derived** (historical-safe) vs **forward_limited / revised_soft / snapshot_forward** (forward-only, caution) vs **excluded_hazard** (never collected — World Bank/IMF/OWID, weather reanalysis). Historical training episodes should use only historical-safe classes; the bitemporal `knowledge_time` enforces it automatically. The `status` workflow prints each source's class.
 
-### Tier 2 — free-with-key / light engineering (real-economy + derivatives)
-- [~] `eia_energy` — oil/gas inventories & production (EIA API) — built, NEEDS free EIA_API_KEY secret
-- [!] `options_cboe` — free historical options is hard; yfinance gives only CURRENT chains (forward-accruing only; deferred)
-- [!] `earnings_calls` — transcripts: no clean free historical source (needs paid API or heavy scrape; deferred)
-- [~] `google_trends` — pytrends works but fragile/rate-limited; low marginal value vs Wikipedia (optional)
-- [!] `congress_trades` — STOCK Act — easy public datasets now 403; needs official PDF parsing (deferred)
-- [x] `crypto_onchain` — BTC on-chain metrics (Blockchain.com, keyless) ✅ built+firing
+## Agent gym (see `ENV.md`)
+`worldstate/env/`: `WorldStateEnv` (reset/step, PIT observations), tasks (`DataApprovalTask`, `TradingTask`, `ForecastTask`), tiered tools (basic/pro + budget — tool-calls are intermediate steps → multi-step trajectories), `TrajectoryLogger` → `domain=trajectories/source=env`, FastAPI `server.py`, and `llm_agent.py` (real LLM policy via OpenMesh/OpenRouter: gemini-3-flash, deepseek-v4-flash, claude-sonnet-4.6, kimi-k2.6, gpt-5.4, …). The `prediction_market` pro-tool spans all 3 venues.
 
-### Tier 3 — engineering bets (biggest long-term payoff)
-- [!] `gdelt_gkg` article-level = GDELT 429-blocked; full press BODIES at scale = Common Crawl News (heavy, future)
-- [x] `security_master` — SEC identity + S&P500 PIT membership (kills survivorship bias) ✅ built+firing
-- [ ] `entity_graph` — link filings/news/prices to canonical entities; extract supply-chain/customer/competitor from 10-K text (NLP)
-- [x] `surprise_index` — derived econ-surprise from our macro first-release (reads S3) ✅ built+firing
-- [ ] `feature_layer` — rolling vol/corr, factor exposures, event windows, sentiment aggregates
+## Roadmap / next ideas
+- Snapshot-forward reusable pattern (World Bank etc. — PIT-safe from now on).
+- Prediction-market **resolutions** (ground truth) → a calibration training task.
+- More crypto depth (per-protocol TVL, options IV surface, exchange flows).
+- Wire the LLM agent loop at scale → large multi-model trajectory corpora → drift-of-thought analysis on the traces.
 
-### After data: the agent layer
-- [x] financial-agent GYM: worldstate/env/ (WorldStateEnv reset/step + FastAPI server + DataApprovalTask) — see ENV.md ✅ v0
-- [x] tiered access + tools (basic/pro, budget) — worldstate/env/tools.py ✅
-- [x] trajectory logging -> domain=trajectories/source=env (RL training data) ✅
-- [x] richer tasks: TradingTask (PnL), ForecastTask ✅
-- [x] LLM agent policy via OpenMesh/OpenRouter (worldstate/env/llm_agent.py) ✅ — real LLM trajectories
-- [ ] **data-approval** case study (the original use case)
-
-## Status log (update as we go)
-- 2026-07-22: Migrated storage HF → S3. Rebuilt 9 collectors to S3 at parallel-16. FRED key added (macro live). Starting Tier 1.
-
-### World-expansion (PIT-clean, beyond strictly financial)
-- [x] `defillama` — DeFi TVL + stablecoin supply (keyless; daily on-chain snapshots)
-- [x] `usgs_quakes` — significant earthquakes (keyless; event origin time)
-- [x] `arxiv_papers` — finance/econ research papers (keyless; submission date)
-- [x] `predict_manifold` — prediction-market probability trajectories (keyless; the purest PIT — crowd beliefs about the future)
-- [x] `predict_polymarket` — real-money market probabilities (keyless CLOB history)
-- [x] `nasa_events` — NASA EONET natural-disaster events (keyless)
-- [ ] next: PubMed/USPTO, GitHub activity, Wikidata graph, global macro (vintage-aware only)
-
-### PIT governance (avoid env contamination)
-- **`PIT.md`** classifies every source by trust: immutable/vintage/derived (historical-safe) vs forward_limited/revised_soft/snapshot_forward (forward-only/caution) vs excluded_hazard. Auto-generated from `worldstate/provenance.py` via `scripts.gen_pit_doc`.
-- The `status` workflow now prints each source's `pit_class`. Historical training episodes must use only historical-safe classes; the bitemporal knowledge_time enforces it.
-- [x] `defillama_flows` (DEX volume/fees/revenue; revised_soft) ; [x] `predict_kalshi` (regulated event contracts, keyless — FIXED: volume_fp filter + _dollars candles)
-
-### Deep crypto + prediction markets (institutional interest)
-- [x] `crypto_funding` — OKX perp funding rates (positioning/basis; ~3mo depth, accrues forward)
-- [x] `crypto_vol` — Deribit DVOL implied-vol index (crypto VIX; BTC/ETH)
-- [x] `crypto_fng` — crypto Fear & Greed sentiment (full history)
-- [x] deepened predict_manifold (17 topics) + predict_polymarket (8 pages)
-- [ ] next: DefiLlama DEX-volume/fees, Metaculus (403 — needs headers), Kalshi (auth via existing creds)
+## Status log
+- 2026-07-22: Storage on S3; **30 collectors** live (incl. deep crypto + Kalshi/Polymarket/Manifold prediction markets); **PIT provenance registry + PIT.md**; gym + tiered tools + LLM-agent (OpenMesh) + trajectory pipeline. Daily cron autonomous. ~3+ GB and growing.

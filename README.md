@@ -6,7 +6,11 @@ the *Drift of Thought* research program. The goal is not a static dataset but an
 state of the world as it was actually knowable then* — prices, macro, filings,
 news — with **zero lookahead**.
 
-**Compute = GitHub Actions. Storage = a private Hugging Face dataset. Nothing runs locally.**
+**Compute = GitHub Actions. Storage = a private AWS S3 bucket. Nothing runs locally; the daily cron is autonomous.**
+
+> 📖 **Start here: [`HANDOFF.md`](HANDOFF.md)** — the complete, current entry point (30 collectors, how to
+> run everything from a phone, credentials, roadmap). Also: [`PIT.md`](PIT.md) (data-trust classification)
+> and [`ENV.md`](ENV.md) (the agent gym). This README covers the original design; HANDOFF is authoritative.
 
 ## Why point-in-time
 
