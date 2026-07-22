@@ -38,7 +38,10 @@ jobs:
       - if: ${{ inputs.collector == 'market_yahoo' || inputs.collector == 'fundamentals_sec' || inputs.collector == 'edgar_fulltext' }}
         run: python -m scripts.build_universe --top ${{ inputs.universe_top }}
       - id: set
-        run: echo "matrix=$(python -m scripts.run_collector ${{ inputs.collector }} list)" >> "$GITHUB_OUTPUT"
+        run: |
+          M=$(python -m scripts.run_collector ${{ inputs.collector }} list)
+          echo "matrix=$M" >> "$GITHUB_OUTPUT"
+          test -n "$M" && [ "$M" != "[]" ]   # fail loudly if the matrix is empty
 
   run:
     needs: plan
