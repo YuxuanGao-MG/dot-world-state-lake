@@ -78,6 +78,24 @@ GDELT_THEMES = {
     "housing_market": "\"housing market\"",
 }
 
+# --- Headlines / discussion (Hacker News Algolia, keyless, full history) -------
+HN_QUERIES = {
+    "federal_reserve": "Federal Reserve",
+    "inflation": "inflation",
+    "recession": "recession",
+    "stock_market": "stock market",
+    "interest_rates": "interest rates",
+    "bitcoin": "bitcoin",
+    "ethereum": "ethereum",
+    "layoffs": "layoffs",
+    "banking_crisis": "bank collapse",
+    "oil_energy": "oil prices",
+    "ai": "artificial intelligence",
+    "housing": "housing market",
+    "tariffs": "tariffs",
+    "unemployment": "unemployment",
+}
+
 # --- Attention (Wikipedia daily pageviews, keyless): interest per topic --------
 WIKI_ARTICLES = [
     "Inflation", "Recession", "Federal_Reserve", "S&P_500", "Nasdaq",

@@ -40,7 +40,8 @@ class AlfredVintages(Collector):
         if not force and hfstore.exists(path):
             return {"series": series, "skipped": True}
         if not self.key:
-            raise RuntimeError("FRED_API_KEY not set")
+            # Missing optional key must not red-X the daily cron; skip gracefully.
+            return {"series": series, "skipped_no_key": True}
 
         self.rl.wait()
         params = {

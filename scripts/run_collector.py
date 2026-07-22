@@ -18,7 +18,9 @@ from worldstate.collectors.macro_alfred import AlfredVintages
 from worldstate.collectors.edgar import EdgarIndex
 from worldstate.collectors.crypto_yahoo import CryptoYahoo
 from worldstate.collectors.news_gdelt import GdeltThemes
+from worldstate.collectors.news_hn import HackerNews
 from worldstate.collectors.wiki_pageviews import WikiPageviews
+from worldstate.collectors.fundamentals_sec import SecFundamentals
 
 REGISTRY = {
     "market_yahoo": YahooDaily,
@@ -26,7 +28,9 @@ REGISTRY = {
     "edgar": EdgarIndex,
     "crypto_yahoo": CryptoYahoo,
     "news_gdelt": GdeltThemes,
+    "news_hn": HackerNews,
     "wiki_pageviews": WikiPageviews,
+    "fundamentals_sec": SecFundamentals,
 }
 
 

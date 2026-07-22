@@ -37,7 +37,9 @@ worldstate/
     crypto_yahoo.py   # crypto daily OHLCV via yfinance (keyless)
     macro_alfred.py   # FRED/ALFRED macro WITH vintage history (needs FRED_API_KEY)
     edgar.py          # SEC filing event stream (keyless)
+    fundamentals_sec.py # as-reported company financials, SEC XBRL — PIT via filed date (keyless)
     news_gdelt.py     # daily news volume + tone per theme, GDELT DOC 2.0 (keyless)
+    news_hn.py        # headlines + discussion from Hacker News Algolia (keyless)
     wiki_pageviews.py # daily Wikipedia pageviews per topic — attention (keyless)
 scripts/
   run_collector.py  # CLI used by the workflows: list | run --chunk | run-all
