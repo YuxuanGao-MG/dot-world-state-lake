@@ -63,22 +63,35 @@ class ObservationBuilder:
               AND knowledge_time > TIMESTAMP '{asof}' - INTERVAL 3 DAY
               AND form IN ('8-K','10-K','10-Q') LIMIT 10""")
 
+    def _predictions(self, asof: str) -> pd.DataFrame:
+        g = query._glob("predictions", "manifold")
+        return self._df(f"""
+            WITH v AS (
+              SELECT entity, question, probability, volume, event_time,
+                     row_number() OVER (PARTITION BY entity ORDER BY event_time DESC) rn
+              FROM read_parquet('{g}', hive_partitioning=1)
+              WHERE knowledge_time <= TIMESTAMP '{asof}')
+            SELECT question, probability, volume FROM v WHERE rn=1
+            ORDER BY volume DESC LIMIT 6""")
+
     def build(self, asof: str) -> dict:
         prices = self._prices(asof)
         macro = self._macro(asof)
         news = self._news(asof)
         filings = self._filings(asof)
+        predictions = self._predictions(asof)
         return {
             "as_of": asof,
             "prices": prices.to_dict("records"),
             "macro": macro.to_dict("records"),
             "news": news.to_dict("records"),
             "filings": filings.to_dict("records"),
-            "text": self._render(asof, prices, macro, news, filings),
+            "predictions": predictions.to_dict("records"),
+            "text": self._render(asof, prices, macro, news, filings, predictions),
         }
 
     @staticmethod
-    def _render(asof, prices, macro, news, filings) -> str:
+    def _render(asof, prices, macro, news, filings, predictions=None) -> str:
         L = [f"=== World state as of {asof} (only info knowable by now) ==="]
         if len(prices):
             L.append("Prices: " + ", ".join(
@@ -86,6 +99,9 @@ class ObservationBuilder:
         if len(macro):
             L.append("Macro (latest vintage): " + ", ".join(
                 f"{r.entity}={r.value:.2f}" for r in macro.itertuples()))
+        if predictions is not None and len(predictions):
+            L.append("Crowd beliefs (prediction markets):")
+            L += [f"  - {r.probability:.0%}: {str(r.question)[:80]}" for r in predictions.itertuples()]
         if len(news):
             L.append("Top headlines:")
             L += [f"  - [{int(r.points)}] {r.title}" for r in news.itertuples()]

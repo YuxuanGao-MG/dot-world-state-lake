@@ -32,6 +32,9 @@ class ToolRegistry:
             Tool("positioning", "pro", 1, "Latest short-sale volume for a ticker. args: {ticker}"),
             Tool("filing_text", "pro", 2, "Most recent 8-K/10-K text snippet. args: {ticker}"),
             Tool("onchain", "pro", 1, "Latest BTC on-chain metric. args: {metric}"),
+            Tool("prediction_market", "pro", 1, "Crowd probability of future events matching a query. args: {query}"),
+            Tool("defi_tvl", "pro", 1, "Latest DeFi TVL for a chain (or 'total'/'stablecoins'). args: {series}"),
+            Tool("recent_shocks", "pro", 1, "Recent significant earthquakes (last 30d). args: {min_mag?}"),
         ]}
 
     def available(self, tier: str) -> list[dict]:
@@ -103,3 +106,35 @@ class ToolRegistry:
             SELECT event_time, value FROM read_parquet('{g}', hive_partitioning=1)
             WHERE metric='{m}' AND knowledge_time <= TIMESTAMP '{asof}'
             ORDER BY event_time DESC LIMIT 1""")}
+
+    def _prediction_market(self, env, asof, args):
+        q = str(args.get("query", "")).lower().replace("'", "")
+        rows = []
+        for src in ("manifold", "polymarket"):
+            g = query._glob("predictions", src)
+            rows += self._q(env, f"""
+                WITH v AS (SELECT question, probability, volume,
+                            row_number() OVER (PARTITION BY entity ORDER BY event_time DESC) rn
+                            FROM read_parquet('{g}', hive_partitioning=1)
+                            WHERE knowledge_time <= TIMESTAMP '{asof}'
+                              AND lower(question) LIKE '%{q}%')
+                SELECT question, probability, volume FROM v WHERE rn=1
+                ORDER BY volume DESC LIMIT 8""")
+        return {"query": q, "markets": rows}
+
+    def _defi_tvl(self, env, asof, args):
+        s = str(args.get("series", "total"))
+        g = query._glob("crypto_defi", "defillama")
+        return {"series": s, "latest": self._q(env, f"""
+            SELECT event_time, value, metric FROM read_parquet('{g}', hive_partitioning=1)
+            WHERE entity='{s}' AND knowledge_time <= TIMESTAMP '{asof}'
+            ORDER BY event_time DESC LIMIT 1""")}
+
+    def _recent_shocks(self, env, asof, args):
+        mag = float(args.get("min_mag", 6.0))
+        g = query._glob("events", "usgs")
+        return {"min_mag": mag, "quakes": self._q(env, f"""
+            SELECT event_time, magnitude, place FROM read_parquet('{g}', hive_partitioning=1)
+            WHERE knowledge_time <= TIMESTAMP '{asof}'
+              AND knowledge_time > TIMESTAMP '{asof}' - INTERVAL 30 DAY
+              AND magnitude >= {mag} ORDER BY magnitude DESC LIMIT 5""")}
