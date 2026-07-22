@@ -36,6 +36,8 @@ from worldstate.collectors.defillama import DefiLlama
 from worldstate.collectors.usgs_quakes import UsgsQuakes
 from worldstate.collectors.arxiv_papers import ArxivPapers
 from worldstate.collectors.predict_manifold import PredictManifold
+from worldstate.collectors.nasa_events import NasaEvents
+from worldstate.collectors.predict_polymarket import PredictPolymarket
 
 REGISTRY = {
     "market_yahoo": YahooDaily,
@@ -61,6 +63,8 @@ REGISTRY = {
     "usgs_quakes": UsgsQuakes,
     "arxiv_papers": ArxivPapers,
     "predict_manifold": PredictManifold,
+    "nasa_events": NasaEvents,
+    "predict_polymarket": PredictPolymarket,
 }
 
 

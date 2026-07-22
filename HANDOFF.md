@@ -87,4 +87,6 @@ Add a collector: create `worldstate/collectors/<x>.py` (subclass `Collector`, im
 - [x] `usgs_quakes` — significant earthquakes (keyless; event origin time)
 - [x] `arxiv_papers` — finance/econ research papers (keyless; submission date)
 - [x] `predict_manifold` — prediction-market probability trajectories (keyless; the purest PIT — crowd beliefs about the future)
-- [ ] next: Polymarket (CLOB price history), NASA EONET, PubMed/USPTO, Wikidata graph
+- [x] `predict_polymarket` — real-money market probabilities (keyless CLOB history)
+- [x] `nasa_events` — NASA EONET natural-disaster events (keyless)
+- [ ] next: PubMed/USPTO, GitHub activity, Wikidata graph, global macro (vintage-aware only)
