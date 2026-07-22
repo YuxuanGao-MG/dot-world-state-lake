@@ -72,7 +72,8 @@ Add a collector: create `worldstate/collectors/<x>.py` (subclass `Collector`, im
 - [ ] `feature_layer` — rolling vol/corr, factor exposures, event windows, sentiment aggregates
 
 ### After data: the agent layer
-- [ ] `as_of` tool API + tiered access model (the RL environment surface)
+- [x] financial-agent GYM: worldstate/env/ (WorldStateEnv reset/step + FastAPI server + DataApprovalTask) — see ENV.md ✅ v0
+- [ ] tiered access model + trajectory logging (next env iteration)
 - [ ] **data-approval** case study (the original use case)
 
 ## Status log (update as we go)
