@@ -108,19 +108,23 @@ class ToolRegistry:
             ORDER BY event_time DESC LIMIT 1""")}
 
     def _prediction_market(self, env, asof, args):
+        """Latest crowd probability across all 3 venues (Kalshi/Polymarket/Manifold)."""
         q = str(args.get("query", "")).lower().replace("'", "")
         rows = []
-        for src in ("manifold", "polymarket"):
+        # (source, question-column, volume-expr) — kalshi uses `title` and has no volume
+        for src, qcol, vexpr in (("kalshi", "title", "0.0"),
+                                 ("polymarket", "question", "volume"),
+                                 ("manifold", "question", "volume")):
             g = query._glob("predictions", src)
             rows += self._q(env, f"""
-                WITH v AS (SELECT question, probability, volume,
+                WITH v AS (SELECT {qcol} AS question, probability, {vexpr} AS volume, source,
                             row_number() OVER (PARTITION BY entity ORDER BY event_time DESC) rn
                             FROM read_parquet('{g}', hive_partitioning=1)
                             WHERE knowledge_time <= TIMESTAMP '{asof}'
-                              AND lower(question) LIKE '%{q}%')
-                SELECT question, probability, volume FROM v WHERE rn=1
-                ORDER BY volume DESC LIMIT 8""")
-        return {"query": q, "markets": rows}
+                              AND lower({qcol}) LIKE '%{q}%')
+                SELECT source, question, probability, volume FROM v WHERE rn=1
+                ORDER BY volume DESC LIMIT 6""")
+        return {"query": q, "venues": ["kalshi", "polymarket", "manifold"], "markets": rows}
 
     def _defi_tvl(self, env, asof, args):
         s = str(args.get("series", "total"))
