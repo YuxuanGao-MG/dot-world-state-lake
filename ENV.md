@@ -53,4 +53,6 @@ in the log (a baseline rule agent plays it).
 - (done) Access tiers + tools (`tools.py`): basic/pro, budget; tool-calls are
   intermediate steps so trajectories include the access/tool decisions.
 - (done) Trajectory logging (`trajectory.py`) -> domain=trajectories/source=env.
-- Next: wire a real LLM agent; reward shaping; larger trajectory corpora.
+- (done) LLM agent (`llm_agent.py`) via OpenMesh/OpenRouter — models: gemini-3-flash,
+  deepseek-v4-flash, claude-sonnet-4.6, kimi-k2.6, gpt-5.4, … (`collect-trajectories --agent llm --model X`).
+- Next: reward shaping; large multi-model trajectory corpora; drift-of-thought analysis on traces.

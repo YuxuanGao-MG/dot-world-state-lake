@@ -62,7 +62,9 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--episodes", type=int, default=5)
     ap.add_argument("--task", default="data_approval", choices=list(TASKS))
-    ap.add_argument("--agent", default="baseline", choices=["baseline", "random", "tooluser"])
+    ap.add_argument("--agent", default="baseline",
+                    choices=["baseline", "random", "tooluser", "llm"])
+    ap.add_argument("--model", default="gemini-3-flash", help="LLM short name (agent=llm)")
     ap.add_argument("--steps", type=int, default=12)
     ap.add_argument("--step-days", type=int, default=5)
     ap.add_argument("--episode-days", type=int, default=120)
@@ -72,7 +74,11 @@ def main():
     args = ap.parse_args()
 
     random.seed(args.seed)
-    agent = _agent(args.agent)
+    if args.agent == "llm":
+        from worldstate.env.llm_agent import LLMAgent
+        agent = LLMAgent(model=args.model)
+    else:
+        agent = _agent(args.agent)
     win_lo = pd.Timestamp("2021-01-04", tz="UTC")
     win_hi = pd.Timestamp("2024-06-30", tz="UTC")
     total_rows = 0
@@ -84,7 +90,8 @@ def main():
         env = WorldStateEnv(task=TASKS[args.task](), start=start, end=end,
                             step_days=args.step_days, access_tier=args.access_tier,
                             tool_budget=args.tool_budget)
-        logger = TrajectoryLogger(args.task, agent=args.agent)
+        agent_label = f"llm:{args.model}" if args.agent == "llm" else args.agent
+        logger = TrajectoryLogger(args.task, agent=agent_label)
         pkt = env.reset()
         for _ in range(args.steps * 3):  # room for tool sub-steps
             action = agent(pkt)

@@ -76,6 +76,7 @@ Add a collector: create `worldstate/collectors/<x>.py` (subclass `Collector`, im
 - [x] tiered access + tools (basic/pro, budget) — worldstate/env/tools.py ✅
 - [x] trajectory logging -> domain=trajectories/source=env (RL training data) ✅
 - [x] richer tasks: TradingTask (PnL), ForecastTask ✅
+- [x] LLM agent policy via OpenMesh/OpenRouter (worldstate/env/llm_agent.py) ✅ — real LLM trajectories
 - [ ] **data-approval** case study (the original use case)
 
 ## Status log (update as we go)
