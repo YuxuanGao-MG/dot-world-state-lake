@@ -21,11 +21,13 @@ from worldstate.collectors.news_gdelt import GdeltThemes
 from worldstate.collectors.news_hn import HackerNews
 from worldstate.collectors.wiki_pageviews import WikiPageviews
 from worldstate.collectors.fundamentals_sec import SecFundamentals
+from worldstate.collectors.edgar_fulltext import EdgarFulltext
 
 REGISTRY = {
     "market_yahoo": YahooDaily,
     "macro_alfred": AlfredVintages,
     "edgar": EdgarIndex,
+    "edgar_fulltext": EdgarFulltext,
     "crypto_yahoo": CryptoYahoo,
     "news_gdelt": GdeltThemes,
     "news_hn": HackerNews,

@@ -21,13 +21,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        collector: [macro_alfred, edgar, market_yahoo, crypto_yahoo, news_gdelt, news_hn, wiki_pageviews, fundamentals_sec]
+        collector: [macro_alfred, edgar, edgar_fulltext, market_yahoo, crypto_yahoo, news_gdelt, news_hn, wiki_pageviews, fundamentals_sec]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with: { python-version: "3.11" }
       - run: pip install -r requirements.txt
-      - if: ${{ matrix.collector == 'market_yahoo' || matrix.collector == 'fundamentals_sec' }}
+      - if: ${{ matrix.collector == 'market_yahoo' || matrix.collector == 'fundamentals_sec' || matrix.collector == 'edgar_fulltext' }}
         run: python -m scripts.build_universe --top 1500
       - name: refresh ${{ matrix.collector }}
         run: python -m scripts.run_collector ${{ matrix.collector }} run-all --force

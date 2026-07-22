@@ -111,3 +111,7 @@ USER_AGENT = os.environ.get(
 )
 SEC_RATE_LIMIT_HZ = 8.0   # SEC allows 10 req/s; stay under.
 HTTP_TIMEOUT = 30
+
+# --- EDGAR full-text (filing bodies) ----------------------------------------
+EDGAR_FULLTEXT_FORMS = ["8-K", "10-K", "10-Q"]   # material events + core disclosures
+EDGAR_TEXT_MAXLEN = 800_000                       # cap per-doc text to bound shard size
