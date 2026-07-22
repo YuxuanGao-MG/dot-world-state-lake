@@ -1,0 +1,23 @@
+name: status
+
+# One-click inventory of the S3 lake. Trigger from anywhere (incl. phone via the
+# GitHub app: Actions -> status -> Run workflow) and read the size in the log.
+
+on:
+  workflow_dispatch:
+
+env:
+  S3_BUCKET: ${{ vars.S3_BUCKET }}
+  AWS_REGION: ${{ vars.AWS_REGION }}
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+jobs:
+  inventory:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - run: pip install boto3
+      - run: python -m scripts.inventory
