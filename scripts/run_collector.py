@@ -28,6 +28,8 @@ from worldstate.collectors.treasury_auctions import TreasuryAuctions
 from worldstate.collectors.insider_form4 import InsiderForm4
 from worldstate.collectors.fed_text import FomcText
 from worldstate.collectors.holdings_13f import Holdings13F
+from worldstate.collectors.crypto_onchain import CryptoOnchain
+from worldstate.collectors.eia_energy import EiaEnergy
 
 REGISTRY = {
     "market_yahoo": YahooDaily,
@@ -45,6 +47,8 @@ REGISTRY = {
     "insider_form4": InsiderForm4,
     "fed_text": FomcText,
     "holdings_13f": Holdings13F,
+    "crypto_onchain": CryptoOnchain,
+    "eia_energy": EiaEnergy,
 }
 
 

@@ -57,12 +57,12 @@ Add a collector: create `worldstate/collectors/<x>.py` (subclass `Collector`, im
 - [x] `treasury_auctions` — Treasury issuance/auctions (TreasuryDirect API) ✅ built+firing
 
 ### Tier 2 — free-with-key / light engineering (real-economy + derivatives)
-- [ ] `eia_energy` — oil/gas inventories & production (EIA API, free key)
-- [ ] `options_cboe` — put/call ratio, chain snapshots, forward IV surface
-- [ ] `earnings_calls` — earnings-call transcripts (FMP/scrape)
-- [ ] `google_trends` — search interest (pytrends)
-- [ ] `congress_trades` — STOCK Act disclosures
-- [ ] `crypto_onchain` — exchange flows, active addrs, stablecoin supply, gas
+- [~] `eia_energy` — oil/gas inventories & production (EIA API) — built, NEEDS free EIA_API_KEY secret
+- [!] `options_cboe` — free historical options is hard; yfinance gives only CURRENT chains (forward-accruing only; deferred)
+- [!] `earnings_calls` — transcripts: no clean free historical source (needs paid API or heavy scrape; deferred)
+- [~] `google_trends` — pytrends works but fragile/rate-limited; low marginal value vs Wikipedia (optional)
+- [!] `congress_trades` — STOCK Act — easy public datasets now 403; needs official PDF parsing (deferred)
+- [x] `crypto_onchain` — BTC on-chain metrics (Blockchain.com, keyless) ✅ built+firing
 
 ### Tier 3 — engineering bets (biggest long-term payoff)
 - [ ] `news_ccnews` / `gdelt_gkg` — full press bodies at web scale (Common Crawl News / GDELT GKG)
