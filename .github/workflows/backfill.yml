@@ -10,7 +10,7 @@ on:
       collector:
         description: collector to backfill
         type: choice
-        options: [market_yahoo, macro_alfred, edgar, edgar_fulltext, crypto_yahoo, news_gdelt, news_hn, wiki_pageviews, fundamentals_sec, cftc_cot, short_finra, treasury_auctions]
+        options: [market_yahoo, macro_alfred, edgar, edgar_fulltext, crypto_yahoo, news_gdelt, news_hn, wiki_pageviews, fundamentals_sec, cftc_cot, short_finra, treasury_auctions, insider_form4]
         required: true
       force:
         description: overwrite shards that already exist on HF
@@ -40,7 +40,7 @@ jobs:
       - uses: actions/setup-python@v5
         with: { python-version: "3.11" }
       - run: pip install -r requirements.txt
-      - if: ${{ inputs.collector == 'market_yahoo' || inputs.collector == 'fundamentals_sec' || inputs.collector == 'edgar_fulltext' }}
+      - if: ${{ inputs.collector == 'market_yahoo' || inputs.collector == 'fundamentals_sec' || inputs.collector == 'edgar_fulltext' || inputs.collector == 'insider_form4' }}
         run: python -m scripts.build_universe --top ${{ inputs.universe_top }}
       - id: set
         run: |
@@ -61,7 +61,7 @@ jobs:
       - uses: actions/setup-python@v5
         with: { python-version: "3.11" }
       - run: pip install -r requirements.txt
-      - if: ${{ inputs.collector == 'market_yahoo' || inputs.collector == 'fundamentals_sec' || inputs.collector == 'edgar_fulltext' }}
+      - if: ${{ inputs.collector == 'market_yahoo' || inputs.collector == 'fundamentals_sec' || inputs.collector == 'edgar_fulltext' || inputs.collector == 'insider_form4' }}
         run: python -m scripts.build_universe --top ${{ inputs.universe_top }}
       - name: run chunk ${{ matrix.chunk }}
         run: >

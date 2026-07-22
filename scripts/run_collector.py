@@ -25,6 +25,7 @@ from worldstate.collectors.edgar_fulltext import EdgarFulltext
 from worldstate.collectors.cftc_cot import CftcCot
 from worldstate.collectors.short_finra import FinraShort
 from worldstate.collectors.treasury_auctions import TreasuryAuctions
+from worldstate.collectors.insider_form4 import InsiderForm4
 
 REGISTRY = {
     "market_yahoo": YahooDaily,
@@ -39,6 +40,7 @@ REGISTRY = {
     "cftc_cot": CftcCot,
     "short_finra": FinraShort,
     "treasury_auctions": TreasuryAuctions,
+    "insider_form4": InsiderForm4,
 }
 
 
