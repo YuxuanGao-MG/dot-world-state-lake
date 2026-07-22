@@ -32,6 +32,10 @@ from worldstate.collectors.crypto_onchain import CryptoOnchain
 from worldstate.collectors.eia_energy import EiaEnergy
 from worldstate.collectors.security_master import SecurityMaster
 from worldstate.collectors.surprise_index import SurpriseIndex
+from worldstate.collectors.defillama import DefiLlama
+from worldstate.collectors.usgs_quakes import UsgsQuakes
+from worldstate.collectors.arxiv_papers import ArxivPapers
+from worldstate.collectors.predict_manifold import PredictManifold
 
 REGISTRY = {
     "market_yahoo": YahooDaily,
@@ -53,6 +57,10 @@ REGISTRY = {
     "eia_energy": EiaEnergy,
     "security_master": SecurityMaster,
     "surprise_index": SurpriseIndex,
+    "defillama": DefiLlama,
+    "usgs_quakes": UsgsQuakes,
+    "arxiv_papers": ArxivPapers,
+    "predict_manifold": PredictManifold,
 }
 
 

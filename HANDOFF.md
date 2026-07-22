@@ -81,3 +81,10 @@ Add a collector: create `worldstate/collectors/<x>.py` (subclass `Collector`, im
 
 ## Status log (update as we go)
 - 2026-07-22: Migrated storage HF → S3. Rebuilt 9 collectors to S3 at parallel-16. FRED key added (macro live). Starting Tier 1.
+
+### World-expansion (PIT-clean, beyond strictly financial)
+- [x] `defillama` — DeFi TVL + stablecoin supply (keyless; daily on-chain snapshots)
+- [x] `usgs_quakes` — significant earthquakes (keyless; event origin time)
+- [x] `arxiv_papers` — finance/econ research papers (keyless; submission date)
+- [x] `predict_manifold` — prediction-market probability trajectories (keyless; the purest PIT — crowd beliefs about the future)
+- [ ] next: Polymarket (CLOB price history), NASA EONET, PubMed/USPTO, Wikidata graph
