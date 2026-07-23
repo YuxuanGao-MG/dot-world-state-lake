@@ -21,7 +21,7 @@ from worldstate import store as hfstore, normalize
 from worldstate.collectors.base import Collector, RateLimiter
 
 FILE = "http://data.gdeltproject.org/gdeltv2/{stamp}.gkg.csv.zip"
-HOURS = [0, 6, 12, 18]  # 4 snapshots/day
+HOURS = list(range(24))  # hourly snapshots/day (denser coverage)
 TITLE_RE = re.compile(r"<PAGE_TITLE>(.*?)</PAGE_TITLE>")
 
 
