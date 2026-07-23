@@ -58,6 +58,9 @@ SOURCES: dict[tuple[str, str], tuple[str, str, str]] = {
     ("crypto_defi", "defillama"): ("revised_soft", "day + 1d", "DefiLlama may RESTATE past TVL; treat as snapshot_forward if strict"),
     ("crypto_defi", "defillama_flows"): ("revised_soft", "day + 1d", "DEX volume/fees may be restated"),
     ("commodity", "eia"):      ("revised_soft", "period + 4d release", "EIA weekly petroleum/gas estimates get revised"),
+    ("credit", "fred"):         ("vintage", "realtime_start (first release)", "credit spreads / financial-conditions indices (ALFRED vintages)"),
+    ("real_estate", "fred"):    ("vintage", "realtime_start (first release)", "home prices / housing activity (ALFRED vintages)"),
+    ("commodity", "fred"):      ("vintage", "realtime_start (first release)", "energy/metals/ag prices (ALFRED vintages)"),
     ("reference", "master"):    ("snapshot_forward", "collection time (identity kind); effective date (sp500 kind)", "SEC identity = current snapshot; S&P500 changes = immutable"),
 }
 

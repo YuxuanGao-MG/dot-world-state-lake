@@ -58,9 +58,12 @@ envelope then makes contamination impossible — a past-dated query can't see th
 
 | source | knowledge_time | note |
 |---|---|---|
+| `commodity/fred` | realtime_start (first release) | energy/metals/ag prices (ALFRED vintages) |
+| `credit/fred` | realtime_start (first release) | credit spreads / financial-conditions indices (ALFRED vintages) |
 | `fundamentals/sec_xbrl` | filed date (restatements = new rows) | as-reported XBRL |
 | `macro/alfred` | realtime_start (first release) | FRED/ALFRED vintages; daily rate series effectively immutable |
 | `ownership/sec_13f` | acceptance (restatements = new) | 13F holdings |
+| `real_estate/fred` | realtime_start (first release) | home prices / housing activity (ALFRED vintages) |
 
 ### `derived` — ✅ historical-safe
 

@@ -43,6 +43,9 @@ from worldstate.collectors.crypto_vol import CryptoVol
 from worldstate.collectors.crypto_fng import CryptoFearGreed
 from worldstate.collectors.defillama_flows import DefiLlamaFlows
 from worldstate.collectors.predict_kalshi import PredictKalshi
+from worldstate.collectors.credit_fred import CreditFred
+from worldstate.collectors.real_estate_fred import RealEstateFred
+from worldstate.collectors.commodities_fred import CommoditiesFred
 
 REGISTRY = {
     "market_yahoo": YahooDaily,
@@ -75,6 +78,9 @@ REGISTRY = {
     "crypto_fng": CryptoFearGreed,
     "defillama_flows": DefiLlamaFlows,
     "predict_kalshi": PredictKalshi,
+    "credit_fred": CreditFred,
+    "real_estate_fred": RealEstateFred,
+    "commodities_fred": CommoditiesFred,
 }
 
 
