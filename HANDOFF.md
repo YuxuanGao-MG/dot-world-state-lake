@@ -63,3 +63,14 @@ Every source is classified in `worldstate/provenance.py`: **immutable / vintage 
 
 ## Status log
 - 2026-07-22: Storage on S3; **30 collectors** live (incl. deep crypto + Kalshi/Polymarket/Manifold prediction markets); **PIT provenance registry + PIT.md**; gym + tiered tools + LLM-agent (OpenMesh) + trajectory pipeline. Daily cron autonomous. ~3+ GB and growing.
+
+### Paid connection points (blank until a key is added — `worldstate/collectors/paid_adapters.py`)
+Wired into the same framework; each skips gracefully until its secret is set, then implement `_fetch()`.
+| collector(s) | provider | secret | data |
+|---|---|---|---|
+| `options_polygon`, `intraday_polygon` | Polygon.io | `POLYGON_API_KEY` | options chains + IV/greeks · intraday minute bars |
+| `transcripts_fmp`, `estimates_fmp` | Financial Modeling Prep | `FMP_API_KEY` | earnings-call transcripts · analyst estimates/revisions |
+| `news_tiingo` | Tiingo | `TIINGO_API_KEY` | premium tagged financial news |
+| `shipping_ais` | Datalastic | `DATALASTIC_API_KEY` | AIS vessel tracking (trade/supply-chain flows) |
+
+To activate one: `gh secret set <SECRET> -R ... --body "<key>"`, implement the adapter's `_fetch()`, add to workflows' collector lists. Env vars are already declared in the workflows.

@@ -49,6 +49,8 @@ from worldstate.collectors.commodities_fred import CommoditiesFred
 from worldstate.collectors.fed_register import FederalRegister
 from worldstate.collectors.fda_events import FdaEvents
 from worldstate.collectors.epu_index import EpuIndex
+from worldstate.collectors.clinical_trials import ClinicalTrials
+from worldstate.collectors.paid_adapters import PAID_ADAPTERS
 
 REGISTRY = {
     "market_yahoo": YahooDaily,
@@ -87,6 +89,8 @@ REGISTRY = {
     "fed_register": FederalRegister,
     "fda_events": FdaEvents,
     "epu_index": EpuIndex,
+    "clinical_trials": ClinicalTrials,
+    **PAID_ADAPTERS,   # options_polygon, intraday_polygon, transcripts_fmp, estimates_fmp, news_tiingo, shipping_ais (skip until key)
 }
 
 

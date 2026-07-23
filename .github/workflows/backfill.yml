@@ -10,7 +10,7 @@ on:
       collector:
         description: collector to backfill
         type: choice
-        options: [market_yahoo, macro_alfred, edgar, edgar_fulltext, crypto_yahoo, news_gdelt, news_hn, wiki_pageviews, fundamentals_sec, cftc_cot, short_finra, treasury_auctions, insider_form4, fed_text, holdings_13f, crypto_onchain, eia_energy, security_master, surprise_index, defillama, usgs_quakes, arxiv_papers, predict_manifold, nasa_events, predict_polymarket, crypto_funding, crypto_vol, crypto_fng, defillama_flows, predict_kalshi, credit_fred, real_estate_fred, commodities_fred, fed_register, fda_events, epu_index]
+        options: [market_yahoo, macro_alfred, edgar, edgar_fulltext, crypto_yahoo, news_gdelt, news_hn, wiki_pageviews, fundamentals_sec, cftc_cot, short_finra, treasury_auctions, insider_form4, fed_text, holdings_13f, crypto_onchain, eia_energy, security_master, surprise_index, defillama, usgs_quakes, arxiv_papers, predict_manifold, nasa_events, predict_polymarket, crypto_funding, crypto_vol, crypto_fng, defillama_flows, predict_kalshi, credit_fred, real_estate_fred, commodities_fred, fed_register, fda_events, epu_index, clinical_trials, options_polygon, intraday_polygon, transcripts_fmp, estimates_fmp, news_tiingo, shipping_ais]
         required: true
       force:
         description: overwrite shards that already exist on HF
@@ -30,6 +30,10 @@ env:
   HF_TOKEN: ${{ secrets.HF_TOKEN }}
   FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
   EIA_API_KEY: ${{ secrets.EIA_API_KEY }}
+  POLYGON_API_KEY: ${{ secrets.POLYGON_API_KEY }}
+  FMP_API_KEY: ${{ secrets.FMP_API_KEY }}
+  TIINGO_API_KEY: ${{ secrets.TIINGO_API_KEY }}
+  DATALASTIC_API_KEY: ${{ secrets.DATALASTIC_API_KEY }}
 
 jobs:
   plan:

@@ -33,6 +33,7 @@ envelope then makes contamination impossible — a past-dated query can't see th
 
 | source | knowledge_time | note |
 |---|---|---|
+| `alt/shipping_ais` | ping time | PAID (Datalastic): AIS vessel tracking |
 | `attention/wikipedia` | view day + 1d | pageviews |
 | `crypto/yahoo` | day + 1d | daily OHLCV |
 | `events/edgar` | filing date | SEC filing index |
@@ -40,11 +41,16 @@ envelope then makes contamination impossible — a past-dated query can't see th
 | `events/openfda` | report date | FDA drug recalls/enforcement |
 | `events/usgs` | origin time | earthquakes (minor mag revisions) |
 | `filings_text/edgar` | acceptanceDateTime | SEC filing bodies |
+| `fundamentals/fmp_estimates` | estimate date | PAID (FMP): analyst estimates/revisions |
+| `fundamentals/fmp_transcripts` | call date | PAID (FMP): earnings-call transcripts |
 | `macro/treasury` | auction date | Treasury issuance |
+| `market/polygon_intraday` | bar time | PAID (Polygon): intraday minute bars |
 | `market/yahoo` | trade date + ~close | daily OHLCV, not revised |
 | `news/gdelt` | publish day | news tone/volume |
 | `news/hackernews` | post time | headlines |
+| `news/tiingo` | publish time | PAID (Tiingo): premium news |
 | `onchain/blockchain` | day + 1d | BTC on-chain (block data fixed) |
+| `options/polygon` | quote/trade time | PAID (Polygon): options chains/IV/greeks |
 | `policy/federal_register` | publication date | US financial-regulatory documents |
 | `policy/fomc` | publish date (minutes +21d) | FOMC text |
 | `positioning/cftc` | report date + 3d release | CFTC COT |
@@ -54,6 +60,7 @@ envelope then makes contamination impossible — a past-dated query can't see th
 | `predictions/manifold` | bet day | play-money market probs |
 | `predictions/polymarket` | CLOB day | real-money market probs |
 | `research/arxiv` | submission date | papers |
+| `research/clinicaltrials` | study first-post date | ClinicalTrials.gov registrations |
 | `sentiment/alt_fng` | day + 1d | crypto Fear & Greed |
 
 ### `vintage` — ✅ historical-safe
