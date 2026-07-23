@@ -38,15 +38,19 @@ Add a collector: `worldstate/collectors/<x>.py` (subclass `Collector`, `chunks()
 
 ---
 
-## The 30 collectors (by dimension)
+## The 37 live collectors (by dimension) — + 6 paid connection points
 - **Prices:** market_yahoo (US equities/ETFs), crypto_yahoo
 - **Crypto (deep):** crypto_onchain (BTC on-chain), defillama + defillama_flows (DeFi TVL/DEX/fees), crypto_funding (OKX funding), crypto_vol (Deribit DVOL implied vol), crypto_fng (Fear & Greed)
 - **Macro:** macro_alfred (FRED vintages), surprise_index (derived), treasury_auctions, eia_energy
+- **Credit / fixed income:** credit_fred (OAS spreads, financial-conditions & stress indices) *(vintage)*
+- **Real estate:** real_estate_fred (home prices, starts/permits/sales) *(vintage)*
+- **Commodities:** commodities_fred (energy/metals/ag prices) *(vintage)*
 - **SEC:** edgar (index), edgar_fulltext (bodies), fundamentals_sec (XBRL), insider_form4, holdings_13f
-- **Positioning / policy:** cftc_cot, short_finra, fed_text (FOMC)
+- **Positioning / policy:** cftc_cot, short_finra, fed_text (FOMC), fed_register (regulatory actions)
 - **Prediction markets:** predict_kalshi (regulated), predict_polymarket (real-money), predict_manifold (crowd)
-- **News / attention / sentiment:** news_gdelt, news_hn, wiki_pageviews
-- **Events / research:** usgs_quakes, nasa_events, arxiv_papers
+- **News / attention / sentiment:** news_gdelt, news_hn, wiki_pageviews, epu_index (policy uncertainty)
+- **Events:** usgs_quakes, nasa_events, fda_events (drug recalls)
+- **Research:** arxiv_papers, clinical_trials (biotech pipeline)
 - **Reference:** security_master (identity + S&P 500 PIT membership)
 
 ## PIT governance (see `PIT.md`)
@@ -62,7 +66,7 @@ Every source is classified in `worldstate/provenance.py`: **immutable / vintage 
 - Wire the LLM agent loop at scale → large multi-model trajectory corpora → drift-of-thought analysis on the traces.
 
 ## Status log
-- 2026-07-22: Storage on S3; **30 collectors** live (incl. deep crypto + Kalshi/Polymarket/Manifold prediction markets); **PIT provenance registry + PIT.md**; gym + tiered tools + LLM-agent (OpenMesh) + trajectory pipeline. Daily cron autonomous. ~3+ GB and growing.
+- 2026-07-22: Storage on S3; **37 live collectors** (+6 paid connection points); added credit/real-estate/commodity (FRED vintage), fed_register, fda_events, clinical_trials, epu_index; live (incl. deep crypto + Kalshi/Polymarket/Manifold prediction markets); **PIT provenance registry + PIT.md**; gym + tiered tools + LLM-agent (OpenMesh) + trajectory pipeline. Daily cron autonomous. ~3+ GB and growing.
 
 ### Paid connection points (blank until a key is added — `worldstate/collectors/paid_adapters.py`)
 Wired into the same framework; each skips gracefully until its secret is set, then implement `_fetch()`.
