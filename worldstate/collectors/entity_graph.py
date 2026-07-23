@@ -39,13 +39,18 @@ class EntityGraph(Collector):
                                   name="part.parquet")
         if not force and hfstore.exists(path):
             return {"kind": chunk, "skipped": True}
-        con = query.connect()
+        try:
+            con = query.connect()
+            return self._build(con, chunk, force)
+        except Exception as e:  # missing source files / transient — never crash the run
+            return {"kind": chunk, "skipped_error": type(e).__name__, "detail": str(e)[:150]}
 
+    def _build(self, con, chunk, force):
         if chunk == "nodes":
             g = query._glob("reference", "master")
             df = con.execute(f"""
                 SELECT entity AS ticker, cik, name, exchange
-                FROM read_parquet('{g}', hive_partitioning=1)
+                FROM read_parquet('{g}', hive_partitioning=1, union_by_name=1)
                 WHERE record_type='identity'""").df()
             if df.empty:
                 return {"kind": chunk, "rows": 0, "empty": True}

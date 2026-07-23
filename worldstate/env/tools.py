@@ -36,6 +36,8 @@ class ToolRegistry:
             Tool("defi_tvl", "pro", 1, "Latest DeFi TVL for a chain (or 'total'/'stablecoins'). args: {series}"),
             Tool("recent_shocks", "pro", 1, "Recent significant earthquakes (last 30d). args: {min_mag?}"),
             Tool("related_entities", "pro", 1, "Graph neighbors of an entity (owners/insiders/co-mentions). args: {entity}"),
+            Tool("macro_series", "basic", 1, "Latest value of any FRED series (macro/credit/commodity/housing). args: {series}"),
+            Tool("news_search", "pro", 1, "Search recent news by keyword/company (title/orgs). args: {query}"),
         ]}
 
     def available(self, tier: str) -> list[dict]:
@@ -145,6 +147,32 @@ class ToolRegistry:
               AND (upper(entity) LIKE '%{ent}%' OR upper(dst) LIKE '%{ent}%')
             ORDER BY knowledge_time DESC LIMIT 20""")
         return {"entity": ent, "relations": rows}
+
+    def _macro_series(self, env, asof, args):
+        s = str(args.get("series", "")).upper().replace("'", "")
+        for dom, src in (("macro", "alfred"), ("credit", "fred"),
+                         ("commodity", "fred"), ("real_estate", "fred")):
+            g = query._glob(dom, src)
+            r = self._q(env, f"""
+                WITH v AS (SELECT entity, value, knowledge_time,
+                           row_number() OVER (PARTITION BY entity ORDER BY knowledge_time DESC) rn
+                           FROM read_parquet('{g}', hive_partitioning=1)
+                           WHERE knowledge_time <= TIMESTAMP '{asof}' AND upper(entity)='{s}')
+                SELECT entity, value FROM v WHERE rn=1""")
+            if r:
+                return {"series": s, "domain": dom, "latest": r}
+        return {"series": s, "found": False}
+
+    def _news_search(self, env, asof, args):
+        q = str(args.get("query", "")).lower().replace("'", "")
+        g = query._glob("news", "gdelt_gkg")
+        rows = self._q(env, f"""
+            SELECT title, domain, organizations, tone
+            FROM read_parquet('{g}', hive_partitioning=1)
+            WHERE knowledge_time <= TIMESTAMP '{asof}'
+              AND (lower(title) LIKE '%{q}%' OR lower(organizations) LIKE '%{q}%')
+            ORDER BY knowledge_time DESC LIMIT 10""")
+        return {"query": q, "articles": rows}
 
     def _recent_shocks(self, env, asof, args):
         mag = float(args.get("min_mag", 6.0))
