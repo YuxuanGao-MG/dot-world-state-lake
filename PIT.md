@@ -80,6 +80,7 @@ envelope then makes contamination impossible — a past-dated query can't see th
 
 | source | knowledge_time | note |
 |---|---|---|
+| `commodity/eia` | period + 4d release | EIA weekly petroleum/gas estimates get revised |
 | `crypto_defi/defillama` | day + 1d | DefiLlama may RESTATE past TVL; treat as snapshot_forward if strict |
 | `crypto_defi/defillama_flows` | day + 1d | DEX volume/fees may be restated |
 

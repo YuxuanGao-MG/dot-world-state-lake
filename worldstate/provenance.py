@@ -57,6 +57,7 @@ SOURCES: dict[tuple[str, str], tuple[str, str, str]] = {
     # revised / snapshot — historical NOT fully trustworthy
     ("crypto_defi", "defillama"): ("revised_soft", "day + 1d", "DefiLlama may RESTATE past TVL; treat as snapshot_forward if strict"),
     ("crypto_defi", "defillama_flows"): ("revised_soft", "day + 1d", "DEX volume/fees may be restated"),
+    ("commodity", "eia"):      ("revised_soft", "period + 4d release", "EIA weekly petroleum/gas estimates get revised"),
     ("reference", "master"):    ("snapshot_forward", "collection time (identity kind); effective date (sp500 kind)", "SEC identity = current snapshot; S&P500 changes = immutable"),
 }
 
