@@ -35,6 +35,7 @@ class ToolRegistry:
             Tool("prediction_market", "pro", 1, "Crowd probability of future events matching a query. args: {query}"),
             Tool("defi_tvl", "pro", 1, "Latest DeFi TVL for a chain (or 'total'/'stablecoins'). args: {series}"),
             Tool("recent_shocks", "pro", 1, "Recent significant earthquakes (last 30d). args: {min_mag?}"),
+            Tool("related_entities", "pro", 1, "Graph neighbors of an entity (owners/insiders/co-mentions). args: {entity}"),
         ]}
 
     def available(self, tier: str) -> list[dict]:
@@ -133,6 +134,17 @@ class ToolRegistry:
             SELECT event_time, value, metric FROM read_parquet('{g}', hive_partitioning=1)
             WHERE entity='{s}' AND knowledge_time <= TIMESTAMP '{asof}'
             ORDER BY event_time DESC LIMIT 1""")}
+
+    def _related_entities(self, env, asof, args):
+        ent = str(args.get("entity", "")).upper().replace("'", "")
+        g = query._glob("graph", "derived")
+        rows = self._q(env, f"""
+            SELECT rel, entity AS src, dst, knowledge_time
+            FROM read_parquet('{g}', hive_partitioning=1)
+            WHERE kind != 'nodes' AND knowledge_time <= TIMESTAMP '{asof}'
+              AND (upper(entity) LIKE '%{ent}%' OR upper(dst) LIKE '%{ent}%')
+            ORDER BY knowledge_time DESC LIMIT 20""")
+        return {"entity": ent, "relations": rows}
 
     def _recent_shocks(self, env, asof, args):
         mag = float(args.get("min_mag", 6.0))

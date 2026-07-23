@@ -31,7 +31,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        collector: [macro_alfred, edgar, edgar_fulltext, market_yahoo, crypto_yahoo, news_gdelt, news_hn, wiki_pageviews, fundamentals_sec, cftc_cot, short_finra, treasury_auctions, insider_form4, fed_text, holdings_13f, crypto_onchain, eia_energy, security_master, surprise_index, defillama, usgs_quakes, arxiv_papers, predict_manifold, nasa_events, predict_polymarket, crypto_funding, crypto_vol, crypto_fng, defillama_flows, predict_kalshi, credit_fred, real_estate_fred, commodities_fred, fed_register, fda_events, epu_index, clinical_trials, news_gkg]
+        collector: [macro_alfred, edgar, edgar_fulltext, market_yahoo, crypto_yahoo, news_gdelt, news_hn, wiki_pageviews, fundamentals_sec, cftc_cot, short_finra, treasury_auctions, insider_form4, fed_text, holdings_13f, crypto_onchain, eia_energy, security_master, surprise_index, defillama, usgs_quakes, arxiv_papers, predict_manifold, nasa_events, predict_polymarket, crypto_funding, crypto_vol, crypto_fng, defillama_flows, predict_kalshi, credit_fred, real_estate_fred, commodities_fred, fed_register, fda_events, epu_index, clinical_trials, news_gkg, entity_graph]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
