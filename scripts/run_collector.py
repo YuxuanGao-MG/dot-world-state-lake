@@ -53,6 +53,7 @@ from worldstate.collectors.clinical_trials import ClinicalTrials
 from worldstate.collectors.news_gkg import NewsGkg
 from worldstate.collectors.entity_graph import EntityGraph
 from worldstate.collectors.features import Features
+from worldstate.collectors.market_fng import MarketFearGreed
 from worldstate.collectors.paid_adapters import PAID_ADAPTERS
 
 REGISTRY = {
@@ -96,6 +97,7 @@ REGISTRY = {
     "news_gkg": NewsGkg,
     "entity_graph": EntityGraph,
     "features": Features,
+    "market_fng": MarketFearGreed,
     **PAID_ADAPTERS,   # options_polygon, intraday_polygon, transcripts_fmp, estimates_fmp, news_tiingo, shipping_ais (skip until key)
 }
 

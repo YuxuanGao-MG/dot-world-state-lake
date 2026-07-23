@@ -49,6 +49,7 @@ SOURCES: dict[tuple[str, str], tuple[str, str, str]] = {
     ("predictions", "manifold"): ("immutable", "bet day", "play-money market probs"),
     ("predictions", "polymarket"): ("immutable", "CLOB day", "real-money market probs"),
     ("predictions", "kalshi"):  ("immutable", "candle day", "regulated event contracts"),
+    ("sentiment", "cnn_fng"):   ("forward_limited", "day + 1d", "CNN stock-market Fear & Greed + 7 components (~1yr API history)"),
     ("sentiment", "alt_fng"):   ("immutable", "day + 1d", "crypto Fear & Greed"),
     ("crypto_deriv", "okx"):    ("forward_limited", "funding settlement", "~3mo API depth; accrues forward"),
     ("crypto_deriv", "deribit"): ("forward_limited", "day + 1d", "DVOL ~1000d API cap; accrues forward"),

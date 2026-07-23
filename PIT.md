@@ -90,6 +90,7 @@ envelope then makes contamination impossible — a past-dated query can't see th
 |---|---|---|
 | `crypto_deriv/deribit` | day + 1d | DVOL ~1000d API cap; accrues forward |
 | `crypto_deriv/okx` | funding settlement | ~3mo API depth; accrues forward |
+| `sentiment/cnn_fng` | day + 1d | CNN stock-market Fear & Greed + 7 components (~1yr API history) |
 
 ### `revised_soft` — ⚠️ forward-only / caution
 

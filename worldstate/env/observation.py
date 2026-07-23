@@ -117,7 +117,9 @@ class ObservationBuilder:
             "news": self._news(asof),
             "events": self._events(asof),
         }
+        mfng = self._latest("sentiment", "cnn_fng", ["FNG"], asof, "score")
         crypto = self._crypto(asof)
+        ch["market_fng"] = mfng
         return {
             "as_of": asof,
             "regime": ch["regime"].to_dict("records"),
@@ -127,6 +129,7 @@ class ObservationBuilder:
             "credit": ch["credit"].to_dict("records"),
             "commodities": ch["commodities"].to_dict("records"),
             "crypto": crypto,
+            "market_fng": mfng.to_dict("records"),
             "predictions": ch["predictions"].to_dict("records"),
             "news": ch["news"].to_dict("records"),
             "events": ch["events"].to_dict("records"),
@@ -150,6 +153,8 @@ class ObservationBuilder:
         L.append("Macro: " + self._kv(ch["macro"]))
         L.append("Credit/conditions: " + self._kv(ch["credit"]))
         L.append("Commodities: " + self._kv(ch["commodities"]))
+        if len(ch.get("market_fng", [])):
+            L.append(f"Market Fear&Greed: {ch['market_fng']['value'].iloc[0]:.0f}")
         if crypto:
             L.append("Crypto: " + ", ".join(f"{k}={v}" for k, v in crypto.items()))
         if len(ch["predictions"]):
