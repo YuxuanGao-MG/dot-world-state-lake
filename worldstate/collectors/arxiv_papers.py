@@ -44,12 +44,18 @@ class ArxivPapers(Collector):
         rows, start = [], 0
         while start < MAX:
             self.rl.wait()
-            r = self.session.get(API, params={"search_query": q, "start": start,
-                                              "max_results": PAGE, "sortBy": "submittedDate",
-                                              "sortOrder": "ascending"}, timeout=60)
+            try:  # arXiv's API 503s under load / deep pagination — keep what we have
+                r = self.session.get(API, params={"search_query": q, "start": start,
+                                                  "max_results": PAGE, "sortBy": "submittedDate",
+                                                  "sortOrder": "ascending"}, timeout=60)
+            except Exception:
+                break
             if r.status_code != 200:
                 break
-            root = ET.fromstring(r.content)
+            try:
+                root = ET.fromstring(r.content)
+            except Exception:
+                break
             entries = root.findall("a:entry", NS)
             if not entries:
                 break
