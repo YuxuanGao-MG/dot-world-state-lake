@@ -46,6 +46,9 @@ from worldstate.collectors.predict_kalshi import PredictKalshi
 from worldstate.collectors.credit_fred import CreditFred
 from worldstate.collectors.real_estate_fred import RealEstateFred
 from worldstate.collectors.commodities_fred import CommoditiesFred
+from worldstate.collectors.fed_register import FederalRegister
+from worldstate.collectors.fda_events import FdaEvents
+from worldstate.collectors.epu_index import EpuIndex
 
 REGISTRY = {
     "market_yahoo": YahooDaily,
@@ -81,6 +84,9 @@ REGISTRY = {
     "credit_fred": CreditFred,
     "real_estate_fred": RealEstateFred,
     "commodities_fred": CommoditiesFred,
+    "fed_register": FederalRegister,
+    "fda_events": FdaEvents,
+    "epu_index": EpuIndex,
 }
 
 

@@ -37,6 +37,7 @@ envelope then makes contamination impossible — a past-dated query can't see th
 | `crypto/yahoo` | day + 1d | daily OHLCV |
 | `events/edgar` | filing date | SEC filing index |
 | `events/nasa_eonet` | observation date | natural disasters |
+| `events/openfda` | report date | FDA drug recalls/enforcement |
 | `events/usgs` | origin time | earthquakes (minor mag revisions) |
 | `filings_text/edgar` | acceptanceDateTime | SEC filing bodies |
 | `macro/treasury` | auction date | Treasury issuance |
@@ -44,6 +45,7 @@ envelope then makes contamination impossible — a past-dated query can't see th
 | `news/gdelt` | publish day | news tone/volume |
 | `news/hackernews` | post time | headlines |
 | `onchain/blockchain` | day + 1d | BTC on-chain (block data fixed) |
+| `policy/federal_register` | publication date | US financial-regulatory documents |
 | `policy/fomc` | publish date (minutes +21d) | FOMC text |
 | `positioning/cftc` | report date + 3d release | CFTC COT |
 | `positioning/finra_short` | date + 1d | FINRA short volume |
@@ -86,6 +88,7 @@ envelope then makes contamination impossible — a past-dated query can't see th
 | `commodity/eia` | period + 4d release | EIA weekly petroleum/gas estimates get revised |
 | `crypto_defi/defillama` | day + 1d | DefiLlama may RESTATE past TVL; treat as snapshot_forward if strict |
 | `crypto_defi/defillama_flows` | day + 1d | DEX volume/fees may be restated |
+| `sentiment/epu` | month + 1mo lag | Economic Policy Uncertainty index (methodology revisions) |
 
 ### `snapshot_forward` — ⚠️ forward-only / caution
 
