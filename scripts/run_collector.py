@@ -50,6 +50,7 @@ from worldstate.collectors.fed_register import FederalRegister
 from worldstate.collectors.fda_events import FdaEvents
 from worldstate.collectors.epu_index import EpuIndex
 from worldstate.collectors.clinical_trials import ClinicalTrials
+from worldstate.collectors.news_gkg import NewsGkg
 from worldstate.collectors.paid_adapters import PAID_ADAPTERS
 
 REGISTRY = {
@@ -90,6 +91,7 @@ REGISTRY = {
     "fda_events": FdaEvents,
     "epu_index": EpuIndex,
     "clinical_trials": ClinicalTrials,
+    "news_gkg": NewsGkg,
     **PAID_ADAPTERS,   # options_polygon, intraday_polygon, transcripts_fmp, estimates_fmp, news_tiingo, shipping_ais (skip until key)
 }
 

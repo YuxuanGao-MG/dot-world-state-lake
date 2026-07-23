@@ -47,6 +47,7 @@ envelope then makes contamination impossible — a past-dated query can't see th
 | `market/polygon_intraday` | bar time | PAID (Polygon): intraday minute bars |
 | `market/yahoo` | trade date + ~close | daily OHLCV, not revised |
 | `news/gdelt` | publish day | news tone/volume |
+| `news/gdelt_gkg` | publication time | GDELT GKG article-level: title/url/themes/orgs/tone (all sectors) |
 | `news/hackernews` | post time | headlines |
 | `news/tiingo` | publish time | PAID (Tiingo): premium news |
 | `onchain/blockchain` | day + 1d | BTC on-chain (block data fixed) |

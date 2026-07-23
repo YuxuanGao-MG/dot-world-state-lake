@@ -48,7 +48,7 @@ Add a collector: `worldstate/collectors/<x>.py` (subclass `Collector`, `chunks()
 - **SEC:** edgar (index), edgar_fulltext (bodies), fundamentals_sec (XBRL), insider_form4, holdings_13f
 - **Positioning / policy:** cftc_cot, short_finra, fed_text (FOMC), fed_register (regulatory actions)
 - **Prediction markets:** predict_kalshi (regulated), predict_polymarket (real-money), predict_manifold (crowd)
-- **News / attention / sentiment:** news_gdelt, news_hn, wiki_pageviews, epu_index (policy uncertainty)
+- **News / attention / sentiment:** news_gkg (GDELT article-level: title/url/themes/orgs/tone, ALL sectors), news_gdelt (tone/volume), news_hn, wiki_pageviews, epu_index
 - **Events:** usgs_quakes, nasa_events, fda_events (drug recalls)
 - **Research:** arxiv_papers, clinical_trials (biotech pipeline)
 - **Reference:** security_master (identity + S&P 500 PIT membership)

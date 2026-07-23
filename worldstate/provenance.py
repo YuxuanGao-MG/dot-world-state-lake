@@ -58,6 +58,7 @@ SOURCES: dict[tuple[str, str], tuple[str, str, str]] = {
     ("crypto_defi", "defillama"): ("revised_soft", "day + 1d", "DefiLlama may RESTATE past TVL; treat as snapshot_forward if strict"),
     ("crypto_defi", "defillama_flows"): ("revised_soft", "day + 1d", "DEX volume/fees may be restated"),
     ("commodity", "eia"):      ("revised_soft", "period + 4d release", "EIA weekly petroleum/gas estimates get revised"),
+    ("news", "gdelt_gkg"):      ("immutable", "publication time", "GDELT GKG article-level: title/url/themes/orgs/tone (all sectors)"),
     ("research", "clinicaltrials"): ("immutable", "study first-post date", "ClinicalTrials.gov registrations"),
     # paid connection points (blank until key set) — class = eventual guarantee
     ("options", "polygon"):     ("immutable", "quote/trade time", "PAID (Polygon): options chains/IV/greeks"),
