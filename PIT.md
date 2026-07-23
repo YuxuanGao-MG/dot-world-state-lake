@@ -80,6 +80,7 @@ envelope then makes contamination impossible — a past-dated query can't see th
 | source | knowledge_time | note |
 |---|---|---|
 | `derived/surprise` | first-release knowledge_time | econ surprise from ALFRED |
+| `features/derived` | latest input knowledge_time | engineered features: technical/regime/insider-flow/prediction-momentum |
 | `graph/derived` | evidence knowledge_time | entity graph: nodes + ownership/insider/co-mention edges |
 | `trajectories/env` | sim cursor | agent episodes, not world data |
 

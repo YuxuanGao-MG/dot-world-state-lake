@@ -38,6 +38,8 @@ class ToolRegistry:
             Tool("related_entities", "pro", 1, "Graph neighbors of an entity (owners/insiders/co-mentions). args: {entity}"),
             Tool("macro_series", "basic", 1, "Latest value of any FRED series (macro/credit/commodity/housing). args: {series}"),
             Tool("news_search", "pro", 1, "Search recent news by keyword/company (title/orgs). args: {query}"),
+            Tool("get_features", "basic", 1, "Engineered technical features for a ticker (returns/RSI/vol/trend). args: {ticker}"),
+            Tool("market_regime", "basic", 1, "Current market regime: risk-on/off, VIX percentile, curve, HY spread. args: {}"),
         ]}
 
     def available(self, tier: str) -> list[dict]:
@@ -162,6 +164,27 @@ class ToolRegistry:
             if r:
                 return {"series": s, "domain": dom, "latest": r}
         return {"series": s, "found": False}
+
+    def _get_features(self, env, asof, args):
+        t = str(args.get("ticker", "SPY")).upper().replace("'", "")
+        g = query._glob("features", "derived")
+        r = self._q(env, f"""
+            WITH v AS (SELECT *, row_number() OVER (PARTITION BY entity ORDER BY event_time DESC) rn
+                       FROM read_parquet('{g}', hive_partitioning=1, union_by_name=1)
+                       WHERE kind='technical' AND entity='{t}' AND knowledge_time <= TIMESTAMP '{asof}')
+            SELECT event_time, ret_1m, ret_12m, rsi14, vol_21d, dist_52w_high,
+                   above_sma50, above_sma200 FROM v WHERE rn=1""")
+        return {"ticker": t, "features": r}
+
+    def _market_regime(self, env, asof, args):
+        g = query._glob("features", "derived")
+        r = self._q(env, f"""
+            WITH v AS (SELECT *, row_number() OVER (ORDER BY event_time DESC) rn
+                       FROM read_parquet('{g}', hive_partitioning=1, union_by_name=1)
+                       WHERE kind='regime' AND knowledge_time <= TIMESTAMP '{asof}')
+            SELECT event_time, regime, vix, vix_pct_252, curve_2s10s, curve_inverted,
+                   hy_spread, risk_appetite FROM v WHERE rn=1""")
+        return {"regime": r}
 
     def _news_search(self, env, asof, args):
         q = str(args.get("query", "")).lower().replace("'", "")

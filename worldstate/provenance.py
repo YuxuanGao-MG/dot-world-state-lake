@@ -52,6 +52,7 @@ SOURCES: dict[tuple[str, str], tuple[str, str, str]] = {
     ("sentiment", "alt_fng"):   ("immutable", "day + 1d", "crypto Fear & Greed"),
     ("crypto_deriv", "okx"):    ("forward_limited", "funding settlement", "~3mo API depth; accrues forward"),
     ("crypto_deriv", "deribit"): ("forward_limited", "day + 1d", "DVOL ~1000d API cap; accrues forward"),
+    ("features", "derived"):    ("derived", "latest input knowledge_time", "engineered features: technical/regime/insider-flow/prediction-momentum"),
     ("graph", "derived"):       ("derived", "evidence knowledge_time", "entity graph: nodes + ownership/insider/co-mention edges"),
     ("derived", "surprise"):    ("derived", "first-release knowledge_time", "econ surprise from ALFRED"),
     ("trajectories", "env"):    ("derived", "sim cursor", "agent episodes, not world data"),

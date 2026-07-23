@@ -97,8 +97,17 @@ class ObservationBuilder:
               AND knowledge_time > TIMESTAMP '{asof}' - INTERVAL 14 DAY
               AND magnitude >= 6 ORDER BY magnitude DESC LIMIT 3""")
 
+    def _regime(self, asof):
+        g = query._glob("features", "derived")
+        return self._df(f"""
+            WITH v AS (SELECT *, row_number() OVER (ORDER BY event_time DESC) rn
+                       FROM read_parquet('{g}', hive_partitioning=1, union_by_name=1)
+                       WHERE kind='regime' AND knowledge_time <= TIMESTAMP '{asof}')
+            SELECT regime, vix_pct_252, curve_inverted, risk_appetite FROM v WHERE rn=1""")
+
     def build(self, asof: str) -> dict:
         ch = {
+            "regime": self._regime(asof),
             "prices": self._prices(asof),
             "rates": self._latest("macro", "alfred", RATES, asof),
             "macro": self._latest("macro", "alfred", MACRO, asof),
@@ -111,6 +120,7 @@ class ObservationBuilder:
         crypto = self._crypto(asof)
         return {
             "as_of": asof,
+            "regime": ch["regime"].to_dict("records"),
             "prices": ch["prices"].to_dict("records"),
             "rates": ch["rates"].to_dict("records"),
             "macro": ch["macro"].to_dict("records"),
@@ -129,6 +139,11 @@ class ObservationBuilder:
 
     def _render(self, asof, ch, crypto) -> str:
         L = [f"=== World state as of {asof} (only info knowable by now) ==="]
+        if len(ch["regime"]):
+            r = ch["regime"].iloc[0]
+            L.append(f"Regime: {r['regime']} (VIX pct {r['vix_pct_252']:.0%}, "
+                     f"curve {'inverted' if r['curve_inverted'] else 'normal'}, "
+                     f"risk-appetite {r['risk_appetite']:+.2f})")
         if len(ch["prices"]):
             L.append("Equities: " + ", ".join(f"{r.entity} {r.close:.2f}" for r in ch["prices"].itertuples()))
         L.append("Rates: " + self._kv(ch["rates"]))
