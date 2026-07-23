@@ -22,7 +22,9 @@ class Features(Collector):
     source = "derived"
 
     def chunks(self) -> list[str]:
-        return ["technical", "regime", "insider_flow", "prediction_momentum"]
+        return ["technical", "regime", "insider_flow", "prediction_momentum",
+                "news_sentiment", "fundamentals_growth", "cross_asset",
+                "crypto_momentum", "graph_centrality"]
 
     def _write(self, kind, df, payload_cols, force):
         path = hfstore.shard_path(self.domain, self.source, f"kind={kind}",
@@ -143,3 +145,91 @@ class Features(Collector):
         df["prob_chg_30d"] = df.groupby("entity")["probability"].diff(30)
         cols = ["question", "probability", "prob_chg_30d"]
         return self._write("prediction_momentum", df, cols, force)
+
+    # --- news sentiment (per org, weekly, from GKG) --------------------------
+    def _news_sentiment(self, con, force):
+        g = query._glob("news", "gdelt_gkg")
+        df = con.execute(f"""
+            WITH raw AS (SELECT date_trunc('week', event_time) AS w, tone,
+                         unnest(string_split(organizations, ', ')) AS org0
+                         FROM read_parquet('{g}', hive_partitioning=1)
+                         WHERE organizations IS NOT NULL AND length(organizations)>0),
+            orgs AS (SELECT w, tone, trim(org0) AS org FROM raw WHERE length(trim(org0))>2),
+            cnt AS (SELECT org, count(*) c FROM orgs GROUP BY org),
+            top AS (SELECT org FROM cnt WHERE c>=200 ORDER BY c DESC LIMIT 2500)
+            SELECT o.org AS entity, o.w AS event_time,
+                   avg(o.tone) AS avg_tone, count(*) AS n_articles
+            FROM orgs o JOIN top t ON o.org=t.org GROUP BY 1,2""").df()
+        if df.empty:
+            return {"kind": "news_sentiment", "rows": 0, "empty": True}
+        df["knowledge_time"] = pd.to_datetime(df["event_time"], utc=True) + pd.Timedelta(days=1)
+        return self._write("news_sentiment", df, ["avg_tone", "n_articles"], force)
+
+    # --- fundamentals growth (per ticker, from XBRL 10-K) -------------------
+    def _fundamentals_growth(self, con, force):
+        g = query._glob("fundamentals", "sec_xbrl")
+        df = con.execute(f"""
+            WITH f AS (SELECT entity, concept, event_time, knowledge_time, value
+                       FROM read_parquet('{g}', hive_partitioning=1)
+                       WHERE form='10-K' AND concept IN
+                         ('Revenues','NetIncomeLoss','Assets','StockholdersEquity')),
+            d AS (SELECT entity, concept, event_time, any_value(value) AS value,
+                         min(knowledge_time) AS kt FROM f GROUP BY 1,2,3)
+            SELECT entity, concept, event_time, kt AS knowledge_time, value,
+              value / nullif(lag(value) OVER (PARTITION BY entity, concept ORDER BY event_time), 0) - 1
+                AS yoy_growth
+            FROM d""").df()
+        if df.empty:
+            return {"kind": "fundamentals_growth", "rows": 0, "empty": True}
+        return self._write("fundamentals_growth", df, ["concept", "value", "yoy_growth"], force)
+
+    # --- cross-asset rolling correlations (market-wide) ---------------------
+    def _cross_asset(self, con, force):
+        g = query._glob("market", "yahoo")
+        df = con.execute(f"""
+            WITH r AS (SELECT event_time, entity,
+                       close/lag(close) OVER (PARTITION BY entity ORDER BY event_time)-1 AS ret
+                       FROM read_parquet('{g}', hive_partitioning=1)
+                       WHERE entity IN ('SPY','TLT','GLD')),
+            piv AS (SELECT event_time,
+                      max(CASE WHEN entity='SPY' THEN ret END) AS spy,
+                      max(CASE WHEN entity='TLT' THEN ret END) AS tlt,
+                      max(CASE WHEN entity='GLD' THEN ret END) AS gld
+                    FROM r GROUP BY event_time HAVING spy IS NOT NULL)
+            SELECT event_time,
+              corr(spy,tlt) OVER (ORDER BY event_time ROWS BETWEEN 59 PRECEDING AND CURRENT ROW) AS corr_stock_bond,
+              corr(spy,gld) OVER (ORDER BY event_time ROWS BETWEEN 59 PRECEDING AND CURRENT ROW) AS corr_stock_gold
+            FROM piv ORDER BY event_time""").df()
+        if df.empty:
+            return {"kind": "cross_asset", "rows": 0, "empty": True}
+        df["entity"] = "MARKET"
+        df["knowledge_time"] = pd.to_datetime(df["event_time"], utc=True) + pd.Timedelta(days=1)
+        return self._write("cross_asset", df, ["corr_stock_bond", "corr_stock_gold"], force)
+
+    # --- crypto momentum (on-chain) -----------------------------------------
+    def _crypto_momentum(self, con, force):
+        g = query._glob("onchain", "blockchain")
+        df = con.execute(f"""
+            SELECT metric AS entity, event_time, knowledge_time, value,
+              value / nullif(lag(value,30) OVER (PARTITION BY metric ORDER BY event_time),0)-1 AS chg_30d
+            FROM read_parquet('{g}', hive_partitioning=1)
+            WHERE metric IN ('n-unique-addresses','n-transactions','hash-rate','estimated-transaction-volume-usd')""").df()
+        if df.empty:
+            return {"kind": "crypto_momentum", "rows": 0, "empty": True}
+        return self._write("crypto_momentum", df, ["value", "chg_30d"], force)
+
+    # --- graph centrality (from entity_graph co-mention) --------------------
+    def _graph_centrality(self, con, force):
+        g = query._glob("graph", "derived")
+        df = con.execute(f"""
+            WITH e AS (SELECT entity AS src, dst, weight, event_time, knowledge_time
+                       FROM read_parquet('{g}', hive_partitioning=1, union_by_name=1)
+                       WHERE kind='co_mention'),
+            both AS (SELECT src AS entity, weight, event_time, knowledge_time FROM e
+                     UNION ALL SELECT dst AS entity, weight, event_time, knowledge_time FROM e)
+            SELECT entity, event_time, max(knowledge_time) AS knowledge_time,
+                   sum(weight) AS degree, count(*) AS n_edges
+            FROM both GROUP BY entity, event_time""").df()
+        if df.empty:
+            return {"kind": "graph_centrality", "rows": 0, "empty": True}
+        return self._write("graph_centrality", df, ["degree", "n_edges"], force)
