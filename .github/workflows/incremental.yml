@@ -39,5 +39,7 @@ jobs:
       - run: pip install -r requirements.txt
       - if: ${{ matrix.collector == 'market_yahoo' || matrix.collector == 'fundamentals_sec' || matrix.collector == 'edgar_fulltext' || matrix.collector == 'insider_form4' }}
         run: python -m scripts.build_universe --top 1500
+      # Collectors whose full --force rebuild costs more than the 6h job cap run
+      # in --incremental mode instead (live chunks + delta-append to shards).
       - name: refresh ${{ matrix.collector }}
-        run: python -m scripts.run_collector ${{ matrix.collector }} run-all --force
+        run: python -m scripts.run_collector ${{ matrix.collector }} run-all ${{ contains(fromJSON('["insider_form4","news_gkg"]'), matrix.collector) && '--incremental' || '--force' }}

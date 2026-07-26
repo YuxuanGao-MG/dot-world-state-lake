@@ -17,7 +17,7 @@ import time
 import pyarrow as pa
 import pyarrow.parquet as pq
 from functools import lru_cache
-from huggingface_hub import HfApi, CommitOperationAdd
+from huggingface_hub import HfApi, CommitOperationAdd, hf_hub_download
 
 from config import settings
 
@@ -87,6 +87,18 @@ def _listing() -> set[str]:
 
 def exists(path_in_repo: str) -> bool:
     return path_in_repo in _listing()
+
+
+def read_table(path_in_repo: str) -> pa.Table | None:
+    """Read an existing shard back, or None if it isn't there. Used by the
+    incremental refresh to append newly-knowable rows to a whole-history shard."""
+    try:
+        local = _with_retry(lambda: hf_hub_download(
+            repo_id=_repo(), repo_type=settings.HF_REPO_TYPE,
+            filename=path_in_repo, token=_token()))
+        return pq.read_table(local)
+    except Exception:
+        return None
 
 
 def _table_bytes(table: pa.Table) -> bytes:

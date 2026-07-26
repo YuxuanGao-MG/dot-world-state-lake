@@ -3,8 +3,14 @@
   python -m scripts.run_collector <name> list                 # JSON chunk ids
   python -m scripts.run_collector <name> run --chunk <id> [--force]
   python -m scripts.run_collector <name> run-all [--force]     # loop every chunk
+  python -m scripts.run_collector <name> run-all --incremental # daily-refresh mode
 
 `list` feeds a dynamic Actions matrix; each matrix job runs one `run --chunk`.
+
+--force rebuilds shards from scratch (backfill). --incremental is for the daily
+cron: the collector visits only its live chunks (`incremental_chunks()`) and
+extends existing shards with rows that became knowable since the last run —
+what a full --force rebuild costs more than the 6h job cap for.
 """
 from __future__ import annotations
 
@@ -108,9 +114,14 @@ def main():
     ap.add_argument("action", choices=["list", "run", "run-all"])
     ap.add_argument("--chunk")
     ap.add_argument("--force", action="store_true")
+    ap.add_argument("--incremental", action="store_true",
+                    help="daily-refresh mode: live chunks only, extend existing shards")
     args = ap.parse_args()
 
     collector = REGISTRY[args.name]()
+    collector.incremental = args.incremental
+    # Incremental rewrites shards in place, so it implies overwrite-on-write.
+    force = args.force or args.incremental
 
     if args.action == "list":
         print(json.dumps(collector.chunks()))
@@ -120,10 +131,11 @@ def main():
     if args.action == "run":
         if not args.chunk:
             ap.error("--chunk required for run")
-        print(json.dumps(collector.run_chunk(args.chunk, force=args.force)))
+        print(json.dumps(collector.run_chunk(args.chunk, force=force)))
     else:  # run-all
-        for c in collector.chunks():
-            res = collector.run_chunk(c, force=args.force)
+        chunks = collector.incremental_chunks() if args.incremental else collector.chunks()
+        for c in chunks:
+            res = collector.run_chunk(c, force=force)
             print(json.dumps(res), flush=True)
 
 

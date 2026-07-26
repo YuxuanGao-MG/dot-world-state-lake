@@ -14,6 +14,7 @@ else:
     from worldstate import s3store as _impl
 
 exists = _impl.exists
+read_table = _impl.read_table
 upload_table = _impl.upload_table
 upload_tables = _impl.upload_tables
 shard_path = _impl.shard_path

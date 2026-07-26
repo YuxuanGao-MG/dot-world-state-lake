@@ -45,6 +45,16 @@ def exists(path_in_repo: str) -> bool:
         return False
 
 
+def read_table(path_in_repo: str) -> pa.Table | None:
+    """Read an existing shard back, or None if it isn't there. Used by the
+    incremental refresh to append newly-knowable rows to a whole-history shard."""
+    try:
+        obj = _client().get_object(Bucket=_bucket(), Key=path_in_repo)
+        return pq.read_table(io.BytesIO(obj["Body"].read()))
+    except Exception:
+        return None
+
+
 def _table_bytes(table: pa.Table) -> bytes:
     buf = io.BytesIO()
     pq.write_table(table, buf, compression="zstd")

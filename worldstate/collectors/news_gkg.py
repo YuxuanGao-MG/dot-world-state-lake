@@ -46,6 +46,12 @@ class NewsGkg(Collector):
             y, m = (y + 1, 1) if m == 12 else (y, m + 1)
         return out
 
+    def incremental_chunks(self) -> list[str]:
+        """Only the live edge. A full rebuild is ~79 months x ~13 min of bulk-file
+        downloads — far past the 6h job cap — and every closed month is immutable
+        anyway. Two months so the 1st of a month still finishes the previous one."""
+        return self.chunks()[-2:]
+
     def _parse_file(self, raw: str) -> list[dict]:
         rows = []
         for line in raw.split("\n"):
@@ -61,7 +67,10 @@ class NewsGkg(Collector):
                 except (IndexError, ValueError):
                     return None
             rows.append({
-                "date": f[1], "domain": f[3], "url": f[4],
+                # NB: `site_domain`, not `domain` — `domain` is an envelope column
+                # (news/market/...) and a payload column of the same name collides
+                # in normalize.to_table.
+                "date": f[1], "site_domain": f[3], "url": f[4],
                 "title": title[:300], "themes": _clean(f[7], 400),
                 "organizations": _clean(f[13], 300), "persons": _clean(f[11], 200),
                 "tone": tf(0), "positive": tf(1), "negative": tf(2), "polarity": tf(3),
@@ -97,12 +106,12 @@ class NewsGkg(Collector):
         df = pd.DataFrame(recs).drop_duplicates("url")
         ev = pd.to_datetime(df["date"], format="%Y%m%d%H%M%S", utc=True, errors="coerce")
         keep = ev.notna()
-        payload = df[["title", "url", "domain", "themes", "organizations", "persons",
+        payload = df[["title", "url", "site_domain", "themes", "organizations", "persons",
                       "tone", "positive", "negative", "polarity"]][keep].reset_index(drop=True)
         table = normalize.to_table(
             domain=self.domain, source=self.source, payload=payload,
             event_time=ev[keep].values, knowledge_time=ev[keep].values,
-            entity=df["domain"][keep].astype(str).values,
+            entity=df["site_domain"][keep].astype(str).values,
             source_url="http://data.gdeltproject.org/gdeltv2/", vintage_id="",
         )
         hfstore.upload_table(table, path, overwrite=force)

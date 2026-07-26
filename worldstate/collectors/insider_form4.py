@@ -4,12 +4,19 @@ Per universe company: every Form 4 since BACKFILL_START, each transaction a row
 (who, code, shares, price, acquired/disposed, holdings after). Precisely PIT:
 knowledge_time = filing acceptance datetime; event_time = transaction date.
 entity = ticker. One shard per ticker; batch committed together.
+
+The shard is a ticker's WHOLE history, so the daily refresh can neither skip it
+(new filings would never land) nor rebuild it (~16h of SEC fetches for the full
+universe — past the 6h job cap). In `--incremental` mode it instead reads the
+existing shard, fetches only filings that became knowable after its last
+knowledge_time, and appends them.
 """
 from __future__ import annotations
 
 import os
 import lxml.etree as ET
 import pandas as pd
+import pyarrow as pa
 
 from config import settings
 from worldstate import store as hfstore, normalize
@@ -64,6 +71,23 @@ def _parse_form4(raw: bytes, ticker: str) -> list[dict]:
     return rows
 
 
+def _merge(prev: pa.Table, new: pa.Table) -> pa.Table:
+    """Append newly-knowable rows to an existing whole-history shard.
+
+    content_hash covers entity + event_time + payload, so a filing re-read inside
+    the overlap window collapses onto the row already stored — the merge is
+    idempotent and adds no lookahead (every row keeps its own knowledge_time).
+    """
+    df = pd.concat([prev.to_pandas(), new.to_pandas()], ignore_index=True)
+    df = (df.drop_duplicates("content_hash")
+            .sort_values(["knowledge_time", "event_time"])
+            .reset_index(drop=True))
+    try:
+        return pa.Table.from_pandas(df, schema=new.schema, preserve_index=False)
+    except Exception:
+        return pa.Table.from_pandas(df, preserve_index=False)
+
+
 class InsiderForm4(Collector):
     domain = "positioning"
     source = "sec_form4"
@@ -92,8 +116,17 @@ class InsiderForm4(Collector):
             return None
         path = hfstore.shard_path(self.domain, self.source, f"ticker={ticker}",
                                   name="part.parquet")
-        if not force and hfstore.exists(path):
+        prev = hfstore.read_table(path) if self.incremental else None
+        if prev is None and not force and hfstore.exists(path):
             return None
+
+        # Only fetch filings newer than what the shard already holds. The 2-day
+        # overlap re-reads the boundary (amendments, same-timestamp filings);
+        # content_hash dedupe in _merge drops anything we already had.
+        since = None
+        if prev is not None and prev.num_rows:
+            kt = pd.to_datetime(prev.column("knowledge_time").to_pandas(), utc=True)
+            since = kt.max() - pd.Timedelta(days=2)
 
         self.rl.wait()
         r = self.session.get(SUBS_URL.format(cik=cik), timeout=settings.HTTP_TIMEOUT)
@@ -108,6 +141,13 @@ class InsiderForm4(Collector):
                 continue
             fdate = pd.to_datetime(rec["filingDate"][i], utc=True, errors="coerce")
             if pd.isna(fdate) or fdate < start:
+                continue
+            accepted = pd.to_datetime(rec.get("acceptanceDateTime", [None] * len(forms))[i],
+                                      utc=True, errors="coerce")
+            ktime = accepted if pd.notna(accepted) else fdate
+            # Decided BEFORE the document fetch — this is what keeps the daily
+            # refresh to a handful of requests per ticker instead of hundreds.
+            if since is not None and ktime <= since:
                 continue
             doc = rec["primaryDocument"][i]
             if not doc:
@@ -126,9 +166,6 @@ class InsiderForm4(Collector):
                 txns = _parse_form4(d.content, ticker)
             except Exception:
                 continue
-            accepted = pd.to_datetime(rec.get("acceptanceDateTime", [None] * len(forms))[i],
-                                      utc=True, errors="coerce")
-            ktime = accepted if pd.notna(accepted) else fdate
             for row in txns:
                 row["_ktime"] = ktime
                 all_rows.append(row)
@@ -152,12 +189,15 @@ class InsiderForm4(Collector):
             event_time=ev, knowledge_time=df["_ktime"],
             entity=ticker, source_url=SUBS_URL.format(cik=cik), vintage_id="",
         )
-        return table, path, table.num_rows
+        added = table.num_rows
+        if prev is not None:
+            table = _merge(prev, table)
+        return table, path, table.num_rows, added
 
     def run_chunk(self, chunk: str, force: bool = False) -> dict:
         idx = int(chunk)
         tickers = self.uni[idx * BATCH:(idx + 1) * BATCH]
-        pairs, total, done = [], 0, 0
+        pairs, total, new, done = [], 0, 0, 0
         for t in tickers:
             try:
                 res = self._one_ticker(t, force)
@@ -165,11 +205,14 @@ class InsiderForm4(Collector):
                 continue
             if res is None:
                 continue
-            table, path, rows = res
+            table, path, rows, added = res
             pairs.append((table, path))
             total += rows
+            new += added
             done += 1
+        # Incremental rewrites an existing shard in place, so it must overwrite.
         written = hfstore.upload_tables(
             pairs, commit_message=f"form4 batch {chunk} ({done} tickers)",
-            overwrite=force) if pairs else 0
-        return {"chunk": chunk, "tickers": len(tickers), "written": written, "txns": total}
+            overwrite=force or self.incremental) if pairs else 0
+        return {"chunk": chunk, "tickers": len(tickers), "written": written,
+                "txns": total, "new_txns": new}
