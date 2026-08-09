@@ -4,6 +4,16 @@ name: incremental
 # refreshes bars (incl. the newest day); edgar refreshes the current quarter.
 # Runs with --force so today's data overwrites the relevant shards. Light enough
 # to sit comfortably inside the Actions budget.
+#
+# Staged as a DAG, NOT one flat matrix. Derived collectors read the shards the
+# raw collectors write, so running them concurrently produced torn reads --
+# DuckDB hitting a half-written parquet and dying with UnicodeDecodeError at a
+# random byte offset. Those errors were swallowed as skipped_error, so the run
+# stayed green while the feature layer silently went missing. Dependencies:
+#   raw            -> everything that fetches from an external API
+#   derived_l1     -> entity_graph (reads reference/ownership/positioning/news)
+#                     surprise_index (reads macro/alfred)
+#   derived_l2     -> features (reads raw domains AND graph/derived from l1)
 
 on:
   schedule:
@@ -26,12 +36,12 @@ env:
   DATALASTIC_API_KEY: ${{ secrets.DATALASTIC_API_KEY }}
 
 jobs:
-  refresh:
+  raw:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        collector: [macro_alfred, edgar, edgar_fulltext, market_yahoo, crypto_yahoo, news_gdelt, news_hn, wiki_pageviews, fundamentals_sec, cftc_cot, short_finra, treasury_auctions, insider_form4, fed_text, holdings_13f, crypto_onchain, eia_energy, security_master, surprise_index, defillama, usgs_quakes, arxiv_papers, predict_manifold, nasa_events, predict_polymarket, crypto_funding, crypto_vol, crypto_fng, defillama_flows, predict_kalshi, credit_fred, real_estate_fred, commodities_fred, fed_register, fda_events, epu_index, clinical_trials, news_gkg, entity_graph, features, market_fng]
+        collector: [macro_alfred, edgar, edgar_fulltext, market_yahoo, crypto_yahoo, news_gdelt, news_hn, wiki_pageviews, fundamentals_sec, cftc_cot, short_finra, treasury_auctions, insider_form4, fed_text, holdings_13f, crypto_onchain, eia_energy, security_master, defillama, usgs_quakes, arxiv_papers, predict_manifold, nasa_events, predict_polymarket, crypto_funding, crypto_vol, crypto_fng, defillama_flows, predict_kalshi, credit_fred, real_estate_fred, commodities_fred, fed_register, fda_events, epu_index, clinical_trials, news_gkg, market_fng]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -43,3 +53,40 @@ jobs:
       # in --incremental mode instead (live chunks + delta-append to shards).
       - name: refresh ${{ matrix.collector }}
         run: python -m scripts.run_collector ${{ matrix.collector }} run-all ${{ contains(fromJSON('["insider_form4","news_gkg"]'), matrix.collector) && '--incremental' || '--force' }}
+
+  # First derived layer: reads only raw domains. !cancelled() rather than
+  # success() so one flaky raw collector doesn't wipe out the whole derived
+  # layer -- these degrade gracefully per-source by design.
+  derived_l1:
+    needs: raw
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        collector: [entity_graph, surprise_index]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - run: pip install -r requirements.txt
+      - name: refresh ${{ matrix.collector }}
+        run: python -m scripts.run_collector ${{ matrix.collector }} run-all --force
+
+  # Second derived layer: features/graph_centrality reads graph/derived, which
+  # entity_graph writes in derived_l1.
+  derived_l2:
+    needs: derived_l1
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        collector: [features]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - run: pip install -r requirements.txt
+      - name: refresh ${{ matrix.collector }}
+        run: python -m scripts.run_collector ${{ matrix.collector }} run-all --force
