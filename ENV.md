@@ -40,9 +40,48 @@ while not pkt["done"]:
 **As an API** (agent enters over HTTP):
 ```
 pip install -r requirements-env.txt
+export GYM_API_KEYS="alice:$(python -c 'import secrets;print(secrets.token_urlsafe(24))')"
 uvicorn worldstate.env.server:app       # needs AWS creds in env
 # POST /sessions -> {session_id, packet};  POST /sessions/{id}/act {"action":"reject"}
 ```
+
+## Letting an outsider in (whitelist)
+
+The server holds AWS credentials for a **private** bucket, so it is never open.
+Access is one env var — comma-separated `name:key` pairs:
+
+```
+GYM_API_KEYS="alice:s3cret-one,bob:s3cret-two"
+```
+
+Add someone → append a pair and restart. Revoke → delete the pair and restart.
+No database, no user table. Callers send `X-API-Key: <key>` (or
+`Authorization: Bearer <key>`).
+
+Mint a key with `python -c "import secrets; print(secrets.token_urlsafe(24))"`.
+
+| Behaviour | |
+|---|---|
+| `GYM_API_KEYS` unset | **fails closed** — every authed route 503s, so a misconfigured deploy can't leak the lake |
+| `/health` | open (liveness needs no key), reports no session detail |
+| Sessions | scoped to their creator; someone else's id returns **404**, not 403, so ids can't be probed |
+| `GYM_MAX_SESSIONS` | per-caller concurrent cap, default 3 — each env holds a DuckDB connection and drives S3 egress |
+| Key comparison | constant-time (`secrets.compare_digest`) |
+
+Client sketch:
+```bash
+curl -sX POST $GYM/sessions -H "X-API-Key: $KEY" \
+     -H 'content-type: application/json' -d '{"task":"data_approval"}'
+curl -sX POST $GYM/sessions/$SID/act -H "X-API-Key: $KEY" \
+     -H 'content-type: application/json' -d '{"action":"reject"}'
+```
+
+Verify with `python tests/test_server_auth.py` (stubs the env; no AWS needed).
+
+Still worth knowing before you scale it: sessions live in a process-local dict,
+so this is **single-replica** — a restart drops in-flight episodes, and you can't
+run two instances behind a load balancer without moving session state out. There
+is no per-request rate limit either; the session cap is the only throttle.
 
 **From your phone:** Actions → **env-demo** → Run → read the reset/act/reward loop
 in the log (a baseline rule agent plays it).
