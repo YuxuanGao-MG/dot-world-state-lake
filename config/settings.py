@@ -56,7 +56,10 @@ MACRO_SERIES = [
     # FX
     "DEXUSEU", "DEXJPUS", "DEXCHUS", "DEXUSUK", "DTWEXBGS",
     # commodities
-    "DCOILWTICO", "DCOILBRENTEU", "GOLDAMGBD228NLBM", "DHHNGSP",
+    # NB: ICE Benchmark Administration series (gold/silver fixings) were removed
+    # from FRED in Jan 2022 and 400 forever; gold exposure comes via GLD in
+    # market/yahoo instead.
+    "DCOILWTICO", "DCOILBRENTEU", "DHHNGSP",
     # credit & volatility
     "VIXCLS", "BAMLH0A0HYM2", "BAMLC0A0CM",
 ]

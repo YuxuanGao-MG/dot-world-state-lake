@@ -225,11 +225,11 @@ class Features(Collector):
             WITH e AS (SELECT entity AS src, dst, weight, event_time, knowledge_time
                        FROM read_parquet('{g}', hive_partitioning=1, union_by_name=1)
                        WHERE kind='co_mention'),
-            both AS (SELECT src AS entity, weight, event_time, knowledge_time FROM e
+            endpoints AS (SELECT src AS entity, weight, event_time, knowledge_time FROM e
                      UNION ALL SELECT dst AS entity, weight, event_time, knowledge_time FROM e)
             SELECT entity, event_time, max(knowledge_time) AS knowledge_time,
                    sum(weight) AS degree, count(*) AS n_edges
-            FROM both GROUP BY entity, event_time""").df()
+            FROM endpoints GROUP BY entity, event_time""").df()
         if df.empty:
             return {"kind": "graph_centrality", "rows": 0, "empty": True}
         return self._write("graph_centrality", df, ["degree", "n_edges"], force)

@@ -12,8 +12,9 @@ class CommoditiesFred(FredVintageBase):
         # energy
         "DCOILWTICO", "DCOILBRENTEU", "DHHNGSP", "DJFUELUSGULF", "GASREGCOVW",
         "PNGASEUUSDM", "PCOALAUUSDM",
-        # metals
-        "GOLDAMGBD228NLBM", "SLVPRUSD", "PCOPPUSDM", "PALUMUSDM", "PPLAT",
+        # metals -- GOLDAMGBD228NLBM/SLVPRUSD (ICE fixings) were pulled from FRED
+        # in Jan 2022 and PPLAT no longer exists; all three 400 permanently.
+        "PCOPPUSDM", "PALUMUSDM",
         # agriculture
         "PWHEAMTUSDM", "PMAIZMTUSDM", "PSOYBUSDQ", "PSUGAISAUSDM", "PCOTTINDUSDM",
         # aggregate indices
