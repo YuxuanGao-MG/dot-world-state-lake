@@ -20,6 +20,16 @@ on:
     - cron: "0 8 * * *"   # 08:00 UTC daily
   workflow_dispatch:
 
+# Only one incremental run at a time. Two overlapping runs would write the same
+# deterministic S3 shard paths concurrently -- the same torn-read race the
+# raw -> derived staging above eliminates, except across runs, where the DAG
+# can't help. A manual dispatch colliding with the 08:00 cron is the realistic
+# way that happens. Queue the second run instead of cancelling it: this is data
+# collection, so we want it to run late, not not at all.
+concurrency:
+  group: incremental
+  cancel-in-progress: false
+
 env:
   STORAGE_BACKEND: s3
   S3_BUCKET: ${{ vars.S3_BUCKET }}
