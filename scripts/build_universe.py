@@ -23,15 +23,33 @@ def main():
     r = requests.get(URL, headers={"User-Agent": settings.USER_AGENT}, timeout=60)
     r.raise_for_status()
     data = r.json()
-    tickers = []
+
+    # SEED_UNIVERSE always goes in first. company_tickers.json is operating
+    # companies: not one of the 19 seed ETFs is in the top 1500, and TLT, IEF,
+    # HYG, LQD, IWM, VTI and every XL* sector ETF are absent from the file
+    # entirely. Since the collectors only fall back to SEED_UNIVERSE when this
+    # file is MISSING -- and the workflow regenerates it every run -- writing
+    # SEC tickers alone silently dropped every ETF from the lake. That left
+    # features/cross_asset (needs SPY/TLT/GLD) returning zero rows and the gym's
+    # price watchlist resolving only its three single names.
+    seed = []
     seen = set()
+    for t in settings.SEED_UNIVERSE:
+        t = t.upper().strip()
+        if t and t not in seen:
+            seen.add(t)
+            seed.append(t)
+
+    sec = []
     for row in data.values():
         t = str(row["ticker"]).upper().strip()
         if t and t not in seen:
             seen.add(t)
-            tickers.append(t)
+            sec.append(t)
+    # --top caps the SEC expansion; the seed set is small and always kept.
     if args.top:
-        tickers = tickers[:args.top]
+        sec = sec[:args.top]
+    tickers = seed + sec
 
     out = os.path.join(os.path.dirname(__file__), "..", "config", "universe_us.txt")
     with open(out, "w") as f:
